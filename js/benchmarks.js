@@ -1,6 +1,7 @@
 /**
  * AI Benchmarks Comparison App
  * Compara el rendimiento de los modelos de IA más populares
+ * Datos actualizados a Enero 2025
  */
 
 // ============================================
@@ -8,11 +9,25 @@
 // ============================================
 
 const BENCHMARKS = {
-    mmlu: {
-        name: "MMLU",
-        fullName: "Massive Multitask Language Understanding",
+    mmlu_pro: {
+        name: "MMLU-Pro",
+        fullName: "MMLU Professional",
         category: "knowledge",
-        description: "Evalúa el conocimiento general y la capacidad de razonamiento en 57 materias académicas, desde humanidades hasta ciencias exactas.",
+        description: "Versión mejorada de MMLU con preguntas más difíciles y 10 opciones en lugar de 4. Evalúa conocimiento experto en múltiples dominios.",
+        maxScore: 100
+    },
+    gpqa_diamond: {
+        name: "GPQA Diamond",
+        fullName: "Graduate-Level Google-Proof Q&A (Diamond)",
+        category: "knowledge",
+        description: "Preguntas científicas de nivel doctoral en física, química y biología. Diseñadas para ser difíciles incluso para expertos.",
+        maxScore: 100
+    },
+    simpleqa: {
+        name: "SimpleQA",
+        fullName: "Simple Question Answering",
+        category: "knowledge",
+        description: "Benchmark de OpenAI que mide la precisión factual. Evalúa si los modelos dan respuestas correctas a preguntas simples de hechos.",
         maxScore: 100
     },
     humaneval: {
@@ -22,411 +37,522 @@ const BENCHMARKS = {
         description: "Mide la capacidad de generar código funcional en Python. Incluye 164 problemas de programación con casos de prueba.",
         maxScore: 100
     },
+    swe_bench: {
+        name: "SWE-bench",
+        fullName: "Software Engineering Benchmark",
+        category: "coding",
+        description: "Evalúa la capacidad de resolver issues reales de GitHub. Los modelos deben entender y modificar código en repositorios reales.",
+        maxScore: 100
+    },
+    livecode_bench: {
+        name: "LiveCodeBench",
+        fullName: "Live Code Benchmark",
+        category: "coding",
+        description: "Benchmark de código actualizado continuamente con problemas nuevos de competencias de programación.",
+        maxScore: 100
+    },
+    math_500: {
+        name: "MATH-500",
+        fullName: "Mathematics 500",
+        category: "math",
+        description: "Subconjunto de 500 problemas del benchmark MATH, cubriendo álgebra, geometría, teoría de números y más.",
+        maxScore: 100
+    },
+    aime_2024: {
+        name: "AIME 2024",
+        fullName: "American Invitational Mathematics Examination",
+        category: "math",
+        description: "Problemas de la competencia AIME 2024. Matemáticas de competencia de nivel preparatoria avanzado.",
+        maxScore: 100
+    },
     gsm8k: {
         name: "GSM8K",
         fullName: "Grade School Math 8K",
         category: "math",
-        description: "Evalúa la resolución de problemas matemáticos de nivel escolar que requieren múltiples pasos de razonamiento.",
+        description: "Problemas matemáticos de nivel escolar que requieren múltiples pasos de razonamiento.",
         maxScore: 100
     },
-    math: {
-        name: "MATH",
-        fullName: "Mathematics Benchmark",
-        category: "math",
-        description: "Problemas matemáticos de competencia de nivel preparatoria y universidad, incluyendo álgebra, geometría y cálculo.",
-        maxScore: 100
-    },
-    hellaswag: {
-        name: "HellaSwag",
-        fullName: "Harder Endings, Longer contexts",
-        category: "reasoning",
-        description: "Evalúa el razonamiento de sentido común al predecir la continuación más probable de una situación.",
-        maxScore: 100
-    },
-    arc: {
-        name: "ARC-Challenge",
+    arc_challenge: {
+        name: "ARC-C",
         fullName: "AI2 Reasoning Challenge",
         category: "reasoning",
         description: "Preguntas de ciencias de nivel escolar que requieren razonamiento y conocimiento científico.",
         maxScore: 100
     },
-    truthfulqa: {
-        name: "TruthfulQA",
-        fullName: "Truthful Question Answering",
-        category: "knowledge",
-        description: "Mide la tendencia del modelo a generar respuestas veraces y evitar información falsa o engañosa.",
+    ifeval: {
+        name: "IFEval",
+        fullName: "Instruction Following Evaluation",
+        category: "reasoning",
+        description: "Mide qué tan bien los modelos siguen instrucciones específicas y restricciones de formato.",
         maxScore: 100
     },
-    winogrande: {
-        name: "Winogrande",
-        fullName: "Winograd Schema Challenge - Large",
+    mmlu: {
+        name: "MMLU",
+        fullName: "Massive Multitask Language Understanding",
+        category: "knowledge",
+        description: "Evalúa conocimiento general en 57 materias académicas. Benchmark clásico ampliamente usado.",
+        maxScore: 100
+    },
+    arena_hard: {
+        name: "Arena-Hard",
+        fullName: "Chatbot Arena Hard Auto",
         category: "language",
-        description: "Evalúa la comprensión del lenguaje natural mediante la resolución de ambigüedades pronominales.",
+        description: "Benchmark derivado de Chatbot Arena con preguntas difíciles. Usa GPT-4 como juez automatizado.",
         maxScore: 100
     },
-    gpqa: {
-        name: "GPQA",
-        fullName: "Graduate-Level Google-Proof Q&A",
-        category: "knowledge",
-        description: "Preguntas científicas de nivel doctoral diseñadas para ser difíciles incluso con acceso a búsqueda.",
-        maxScore: 100
-    },
-    mtbench: {
+    mt_bench: {
         name: "MT-Bench",
         fullName: "Multi-Turn Benchmark",
         category: "language",
-        description: "Evalúa la capacidad de mantener conversaciones coherentes y útiles en múltiples turnos.",
+        description: "Evalúa conversaciones de múltiples turnos en diferentes categorías como razonamiento y creatividad.",
         maxScore: 10
-    },
-    mbpp: {
-        name: "MBPP",
-        fullName: "Mostly Basic Python Problems",
-        category: "coding",
-        description: "Conjunto de 974 problemas de programación en Python de dificultad básica a intermedia.",
-        maxScore: 100
-    },
-    drop: {
-        name: "DROP",
-        fullName: "Discrete Reasoning Over Paragraphs",
-        category: "reasoning",
-        description: "Requiere razonamiento numérico y comprensión lectora para responder preguntas sobre textos.",
-        maxScore: 100
     }
 };
 
 // ============================================
-// DATA: AI Models and their scores
+// DATA: AI Models and their scores (Enero 2025)
 // ============================================
 
 const AI_MODELS = [
+    // ===== OpenAI =====
+    {
+        id: "o1",
+        name: "o1",
+        company: "OpenAI",
+        color: "#10a37f",
+        releaseDate: "2024-12",
+        description: "Modelo de razonamiento avanzado de OpenAI. Usa 'chain of thought' interno para problemas complejos.",
+        scores: {
+            mmlu_pro: 83.8,
+            gpqa_diamond: 78.0,
+            simpleqa: 47.0,
+            humaneval: 92.4,
+            swe_bench: 48.9,
+            livecode_bench: 63.4,
+            math_500: 96.4,
+            aime_2024: 83.3,
+            gsm8k: 97.2,
+            arc_challenge: 97.8,
+            ifeval: 91.2,
+            mmlu: 92.3,
+            arena_hard: 92.4,
+            mt_bench: 9.5
+        }
+    },
+    {
+        id: "o1_mini",
+        name: "o1-mini",
+        company: "OpenAI",
+        color: "#1a9f75",
+        releaseDate: "2024-09",
+        description: "Versión más rápida y económica de o1, optimizada para tareas de código y STEM.",
+        scores: {
+            mmlu_pro: 80.3,
+            gpqa_diamond: 60.0,
+            simpleqa: 29.0,
+            humaneval: 92.4,
+            swe_bench: 29.3,
+            livecode_bench: 56.2,
+            math_500: 90.0,
+            aime_2024: 56.7,
+            gsm8k: 94.8,
+            arc_challenge: 96.2,
+            ifeval: 85.8,
+            mmlu: 85.2,
+            arena_hard: 80.1,
+            mt_bench: 9.1
+        }
+    },
     {
         id: "gpt4o",
         name: "GPT-4o",
         company: "OpenAI",
-        color: "#10a37f",
+        color: "#2dd4bf",
         releaseDate: "2024-05",
         description: "Modelo multimodal flagship de OpenAI con capacidades de texto, imagen y audio.",
         scores: {
-            mmlu: 88.7,
+            mmlu_pro: 72.6,
+            gpqa_diamond: 53.6,
+            simpleqa: 38.4,
             humaneval: 90.2,
+            swe_bench: 33.2,
+            livecode_bench: 43.1,
+            math_500: 76.6,
+            aime_2024: 36.7,
             gsm8k: 95.8,
-            math: 76.6,
-            hellaswag: 95.3,
-            arc: 96.4,
-            truthfulqa: 64.2,
-            winogrande: 87.5,
-            gpqa: 53.6,
-            mtbench: 9.3,
-            mbpp: 90.5,
-            drop: 83.4
+            arc_challenge: 96.4,
+            ifeval: 84.3,
+            mmlu: 88.7,
+            arena_hard: 82.6,
+            mt_bench: 9.3
         }
     },
     {
-        id: "gpt4turbo",
-        name: "GPT-4 Turbo",
+        id: "gpt4o_mini",
+        name: "GPT-4o mini",
         company: "OpenAI",
-        color: "#1a7f64",
-        releaseDate: "2024-04",
-        description: "Versión optimizada de GPT-4 con ventana de contexto de 128K tokens.",
+        color: "#5eead4",
+        releaseDate: "2024-07",
+        description: "Versión compacta y económica de GPT-4o para aplicaciones de alto volumen.",
         scores: {
-            mmlu: 86.4,
-            humaneval: 87.1,
-            gsm8k: 93.0,
-            math: 72.2,
-            hellaswag: 95.1,
-            arc: 95.6,
-            truthfulqa: 62.8,
-            winogrande: 86.2,
-            gpqa: 49.1,
-            mtbench: 9.1,
-            mbpp: 87.6,
-            drop: 81.2
+            mmlu_pro: 63.1,
+            gpqa_diamond: 40.2,
+            simpleqa: 24.1,
+            humaneval: 87.0,
+            swe_bench: 23.8,
+            livecode_bench: 38.2,
+            math_500: 70.2,
+            aime_2024: 23.3,
+            gsm8k: 93.2,
+            arc_challenge: 93.1,
+            ifeval: 80.1,
+            mmlu: 82.0,
+            arena_hard: 74.8,
+            mt_bench: 8.7
         }
     },
+    // ===== Anthropic =====
     {
-        id: "gpt35turbo",
-        name: "GPT-3.5 Turbo",
-        company: "OpenAI",
-        color: "#5bb98c",
-        releaseDate: "2023-03",
-        description: "Modelo eficiente y rápido, ideal para tareas que no requieren el máximo rendimiento.",
-        scores: {
-            mmlu: 70.0,
-            humaneval: 72.6,
-            gsm8k: 77.4,
-            math: 34.1,
-            hellaswag: 85.5,
-            arc: 85.2,
-            truthfulqa: 47.0,
-            winogrande: 81.6,
-            gpqa: 28.2,
-            mtbench: 7.9,
-            mbpp: 77.4,
-            drop: 64.1
-        }
-    },
-    {
-        id: "claude35sonnet",
+        id: "claude_35_sonnet",
         name: "Claude 3.5 Sonnet",
         company: "Anthropic",
         color: "#d97706",
-        releaseDate: "2024-06",
-        description: "Modelo equilibrado de Anthropic con excelente rendimiento en código y razonamiento.",
+        releaseDate: "2024-10",
+        description: "Modelo flagship de Anthropic (v2). Excelente en código, razonamiento y seguimiento de instrucciones.",
         scores: {
-            mmlu: 88.7,
-            humaneval: 92.0,
+            mmlu_pro: 78.0,
+            gpqa_diamond: 65.0,
+            simpleqa: 28.1,
+            humaneval: 93.7,
+            swe_bench: 49.0,
+            livecode_bench: 52.8,
+            math_500: 78.3,
+            aime_2024: 26.7,
             gsm8k: 96.4,
-            math: 71.1,
-            hellaswag: 94.8,
-            arc: 96.7,
-            truthfulqa: 68.5,
-            winogrande: 88.2,
-            gpqa: 59.4,
-            mtbench: 9.4,
-            mbpp: 91.0,
-            drop: 87.1
+            arc_challenge: 96.7,
+            ifeval: 90.1,
+            mmlu: 88.7,
+            arena_hard: 85.2,
+            mt_bench: 9.4
         }
     },
     {
-        id: "claude3opus",
+        id: "claude_35_haiku",
+        name: "Claude 3.5 Haiku",
+        company: "Anthropic",
+        color: "#fbbf24",
+        releaseDate: "2024-10",
+        description: "Modelo rápido y económico de Anthropic. Ideal para tareas que requieren baja latencia.",
+        scores: {
+            mmlu_pro: 65.0,
+            gpqa_diamond: 41.6,
+            simpleqa: 18.2,
+            humaneval: 88.1,
+            swe_bench: 40.6,
+            livecode_bench: 41.2,
+            math_500: 69.3,
+            aime_2024: 16.7,
+            gsm8k: 92.0,
+            arc_challenge: 93.8,
+            ifeval: 82.4,
+            mmlu: 78.2,
+            arena_hard: 68.4,
+            mt_bench: 8.5
+        }
+    },
+    {
+        id: "claude_3_opus",
         name: "Claude 3 Opus",
         company: "Anthropic",
         color: "#b45309",
         releaseDate: "2024-03",
-        description: "El modelo más potente de Anthropic, optimizado para tareas complejas de razonamiento.",
+        description: "Modelo más potente de la generación Claude 3. Optimizado para tareas complejas.",
         scores: {
-            mmlu: 86.8,
+            mmlu_pro: 72.5,
+            gpqa_diamond: 50.4,
+            simpleqa: 24.5,
             humaneval: 84.9,
+            swe_bench: 22.0,
+            livecode_bench: 35.8,
+            math_500: 60.1,
+            aime_2024: 16.7,
             gsm8k: 95.0,
-            math: 60.1,
-            hellaswag: 95.4,
-            arc: 96.4,
-            truthfulqa: 72.1,
-            winogrande: 88.5,
-            gpqa: 50.4,
-            mtbench: 9.0,
-            mbpp: 86.2,
-            drop: 83.1
+            arc_challenge: 96.4,
+            ifeval: 83.2,
+            mmlu: 86.8,
+            arena_hard: 72.1,
+            mt_bench: 9.0
         }
     },
+    // ===== Google =====
     {
-        id: "claude3haiku",
-        name: "Claude 3 Haiku",
-        company: "Anthropic",
-        color: "#fbbf24",
-        releaseDate: "2024-03",
-        description: "Modelo ligero y rápido de Anthropic para tareas que requieren baja latencia.",
-        scores: {
-            mmlu: 75.2,
-            humaneval: 75.9,
-            gsm8k: 88.9,
-            math: 38.9,
-            hellaswag: 85.9,
-            arc: 89.2,
-            truthfulqa: 56.2,
-            winogrande: 74.7,
-            gpqa: 33.3,
-            mtbench: 8.1,
-            mbpp: 80.4,
-            drop: 68.3
-        }
-    },
-    {
-        id: "gemini15pro",
-        name: "Gemini 1.5 Pro",
-        company: "Google",
-        color: "#4285f4",
-        releaseDate: "2024-02",
-        description: "Modelo multimodal de Google con ventana de contexto de hasta 1M tokens.",
-        scores: {
-            mmlu: 85.9,
-            humaneval: 84.1,
-            gsm8k: 91.7,
-            math: 67.7,
-            hellaswag: 92.5,
-            arc: 94.4,
-            truthfulqa: 60.1,
-            winogrande: 85.1,
-            gpqa: 46.2,
-            mtbench: 9.0,
-            mbpp: 84.2,
-            drop: 78.9
-        }
-    },
-    {
-        id: "gemini20flash",
+        id: "gemini_2_flash",
         name: "Gemini 2.0 Flash",
         company: "Google",
-        color: "#34a853",
+        color: "#4285f4",
         releaseDate: "2024-12",
-        description: "Última versión de Gemini optimizada para velocidad y eficiencia.",
+        description: "Última versión de Gemini. Modelo multimodal con capacidad nativa de ejecución de código.",
         scores: {
-            mmlu: 87.5,
+            mmlu_pro: 76.4,
+            gpqa_diamond: 62.1,
+            simpleqa: 26.3,
             humaneval: 89.2,
+            swe_bench: 32.1,
+            livecode_bench: 48.6,
+            math_500: 80.2,
+            aime_2024: 43.3,
             gsm8k: 94.1,
-            math: 73.1,
-            hellaswag: 93.8,
-            arc: 95.8,
-            truthfulqa: 65.8,
-            winogrande: 86.7,
-            gpqa: 55.2,
-            mtbench: 9.2,
-            mbpp: 88.6,
-            drop: 82.4
+            arc_challenge: 95.8,
+            ifeval: 87.2,
+            mmlu: 87.5,
+            arena_hard: 80.4,
+            mt_bench: 9.2
         }
     },
     {
-        id: "llama31405b",
-        name: "Llama 3.1 405B",
+        id: "gemini_15_pro",
+        name: "Gemini 1.5 Pro",
+        company: "Google",
+        color: "#34a853",
+        releaseDate: "2024-02",
+        description: "Modelo multimodal con ventana de contexto de hasta 2M tokens.",
+        scores: {
+            mmlu_pro: 75.8,
+            gpqa_diamond: 58.6,
+            simpleqa: 22.1,
+            humaneval: 84.1,
+            swe_bench: 28.8,
+            livecode_bench: 42.3,
+            math_500: 74.1,
+            aime_2024: 26.7,
+            gsm8k: 91.7,
+            arc_challenge: 94.4,
+            ifeval: 86.5,
+            mmlu: 85.9,
+            arena_hard: 78.2,
+            mt_bench: 9.0
+        }
+    },
+    // ===== Meta =====
+    {
+        id: "llama_33_70b",
+        name: "Llama 3.3 70B",
         company: "Meta",
         color: "#0668E1",
-        releaseDate: "2024-07",
-        description: "El modelo open-source más grande de Meta con 405 mil millones de parámetros.",
+        releaseDate: "2024-12",
+        description: "Última versión de Llama. Rendimiento comparable a Llama 3.1 405B en un modelo más pequeño.",
         scores: {
-            mmlu: 87.3,
-            humaneval: 89.0,
-            gsm8k: 96.8,
-            math: 73.8,
-            hellaswag: 94.9,
-            arc: 96.1,
-            truthfulqa: 58.4,
-            winogrande: 86.8,
-            gpqa: 50.7,
-            mtbench: 9.1,
-            mbpp: 88.6,
-            drop: 84.8
+            mmlu_pro: 68.9,
+            gpqa_diamond: 50.5,
+            simpleqa: 19.0,
+            humaneval: 88.4,
+            swe_bench: 26.2,
+            livecode_bench: 44.8,
+            math_500: 77.0,
+            aime_2024: 26.7,
+            gsm8k: 94.2,
+            arc_challenge: 94.8,
+            ifeval: 92.1,
+            mmlu: 86.3,
+            arena_hard: 70.2,
+            mt_bench: 8.8
         }
     },
     {
-        id: "llama3170b",
-        name: "Llama 3.1 70B",
+        id: "llama_31_405b",
+        name: "Llama 3.1 405B",
         company: "Meta",
         color: "#4599e8",
         releaseDate: "2024-07",
-        description: "Versión de 70B parámetros, equilibrio entre rendimiento y eficiencia.",
+        description: "El modelo open-source más grande de Meta con 405B parámetros.",
         scores: {
-            mmlu: 83.6,
-            humaneval: 80.5,
-            gsm8k: 93.0,
-            math: 64.1,
-            hellaswag: 93.2,
-            arc: 94.8,
-            truthfulqa: 52.3,
-            winogrande: 84.9,
-            gpqa: 41.7,
-            mtbench: 8.6,
-            mbpp: 82.3,
-            drop: 79.6
+            mmlu_pro: 73.4,
+            gpqa_diamond: 51.1,
+            simpleqa: 21.4,
+            humaneval: 89.0,
+            swe_bench: 29.6,
+            livecode_bench: 43.2,
+            math_500: 73.8,
+            aime_2024: 23.3,
+            gsm8k: 96.8,
+            arc_challenge: 96.1,
+            ifeval: 88.6,
+            mmlu: 87.3,
+            arena_hard: 74.5,
+            mt_bench: 9.1
         }
     },
+    // ===== xAI =====
     {
-        id: "mistrallarge",
-        name: "Mistral Large",
-        company: "Mistral AI",
-        color: "#ff7000",
-        releaseDate: "2024-02",
-        description: "Modelo flagship de Mistral AI con fuerte rendimiento en razonamiento y código.",
+        id: "grok_2",
+        name: "Grok-2",
+        company: "xAI",
+        color: "#1d9bf0",
+        releaseDate: "2024-08",
+        description: "Modelo flagship de xAI. Acceso a información en tiempo real a través de X (Twitter).",
         scores: {
-            mmlu: 84.0,
-            humaneval: 81.2,
-            gsm8k: 91.2,
-            math: 62.2,
-            hellaswag: 89.2,
-            arc: 94.0,
-            truthfulqa: 54.6,
-            winogrande: 84.7,
-            gpqa: 44.1,
-            mtbench: 8.7,
-            mbpp: 80.5,
-            drop: 76.3
+            mmlu_pro: 76.2,
+            gpqa_diamond: 56.4,
+            simpleqa: 32.8,
+            humaneval: 88.4,
+            swe_bench: 31.2,
+            livecode_bench: 45.6,
+            math_500: 76.1,
+            aime_2024: 33.3,
+            gsm8k: 93.8,
+            arc_challenge: 95.2,
+            ifeval: 85.8,
+            mmlu: 87.5,
+            arena_hard: 80.1,
+            mt_bench: 9.1
         }
     },
+    // ===== DeepSeek =====
     {
-        id: "mixtral8x22b",
-        name: "Mixtral 8x22B",
-        company: "Mistral AI",
-        color: "#ff9d4d",
-        releaseDate: "2024-04",
-        description: "Modelo Mixture of Experts con arquitectura sparse de 176B parámetros totales.",
-        scores: {
-            mmlu: 77.8,
-            humaneval: 75.4,
-            gsm8k: 87.9,
-            math: 49.8,
-            hellaswag: 88.4,
-            arc: 91.3,
-            truthfulqa: 50.2,
-            winogrande: 82.1,
-            gpqa: 36.2,
-            mtbench: 8.4,
-            mbpp: 78.6,
-            drop: 73.2
-        }
-    },
-    {
-        id: "qwen25_72b",
-        name: "Qwen 2.5 72B",
-        company: "Alibaba",
-        color: "#6236ff",
-        releaseDate: "2024-09",
-        description: "Modelo multilingüe de Alibaba con excelente rendimiento en chino e inglés.",
-        scores: {
-            mmlu: 86.1,
-            humaneval: 86.4,
-            gsm8k: 93.2,
-            math: 72.5,
-            hellaswag: 92.8,
-            arc: 95.2,
-            truthfulqa: 61.5,
-            winogrande: 85.3,
-            gpqa: 49.0,
-            mtbench: 8.9,
-            mbpp: 85.7,
-            drop: 80.1
-        }
-    },
-    {
-        id: "deepseekv3",
+        id: "deepseek_v3",
         name: "DeepSeek V3",
         company: "DeepSeek",
         color: "#00d4aa",
         releaseDate: "2024-12",
-        description: "Modelo MoE de DeepSeek con 671B parámetros totales y excelente eficiencia.",
+        description: "Modelo MoE con 671B parámetros totales. Excelente relación rendimiento/costo.",
         scores: {
-            mmlu: 88.5,
+            mmlu_pro: 81.2,
+            gpqa_diamond: 59.1,
+            simpleqa: 24.9,
             humaneval: 91.6,
+            swe_bench: 42.0,
+            livecode_bench: 55.8,
+            math_500: 84.6,
+            aime_2024: 39.2,
             gsm8k: 96.2,
-            math: 75.9,
-            hellaswag: 94.2,
-            arc: 96.0,
-            truthfulqa: 63.8,
-            winogrande: 87.1,
-            gpqa: 58.1,
-            mtbench: 9.2,
-            mbpp: 90.2,
-            drop: 85.6
+            arc_challenge: 96.0,
+            ifeval: 87.3,
+            mmlu: 88.5,
+            arena_hard: 85.6,
+            mt_bench: 9.2
         }
     },
     {
-        id: "commandrplus",
-        name: "Command R+",
-        company: "Cohere",
-        color: "#d946ef",
-        releaseDate: "2024-04",
-        description: "Modelo empresarial de Cohere optimizado para RAG y aplicaciones de búsqueda.",
+        id: "deepseek_r1_lite",
+        name: "DeepSeek R1-Lite",
+        company: "DeepSeek",
+        color: "#00b894",
+        releaseDate: "2024-11",
+        description: "Modelo de razonamiento de DeepSeek. Competidor directo de o1-preview.",
         scores: {
-            mmlu: 75.7,
-            humaneval: 72.0,
-            gsm8k: 84.2,
-            math: 47.8,
-            hellaswag: 86.5,
-            arc: 89.8,
-            truthfulqa: 54.2,
-            winogrande: 80.2,
-            gpqa: 35.8,
-            mtbench: 8.2,
-            mbpp: 75.1,
-            drop: 70.4
+            mmlu_pro: 79.8,
+            gpqa_diamond: 58.5,
+            simpleqa: 22.3,
+            humaneval: 89.8,
+            swe_bench: 38.4,
+            livecode_bench: 51.2,
+            math_500: 91.6,
+            aime_2024: 52.5,
+            gsm8k: 95.8,
+            arc_challenge: 95.6,
+            ifeval: 84.2,
+            mmlu: 85.4,
+            arena_hard: 82.4,
+            mt_bench: 9.0
+        }
+    },
+    // ===== Mistral =====
+    {
+        id: "mistral_large_2",
+        name: "Mistral Large 2",
+        company: "Mistral AI",
+        color: "#ff7000",
+        releaseDate: "2024-07",
+        description: "Modelo flagship de Mistral con 123B parámetros. Fuerte en código y razonamiento.",
+        scores: {
+            mmlu_pro: 69.4,
+            gpqa_diamond: 53.1,
+            simpleqa: 21.5,
+            humaneval: 92.1,
+            swe_bench: 28.8,
+            livecode_bench: 44.2,
+            math_500: 69.1,
+            aime_2024: 20.0,
+            gsm8k: 93.8,
+            arc_challenge: 94.0,
+            ifeval: 85.2,
+            mmlu: 84.0,
+            arena_hard: 76.2,
+            mt_bench: 8.8
+        }
+    },
+    // ===== Alibaba =====
+    {
+        id: "qwen_25_72b",
+        name: "Qwen 2.5 72B",
+        company: "Alibaba",
+        color: "#6236ff",
+        releaseDate: "2024-09",
+        description: "Modelo multilingüe de Alibaba. Excelente en chino e inglés, fuerte en código.",
+        scores: {
+            mmlu_pro: 71.1,
+            gpqa_diamond: 49.0,
+            simpleqa: 18.4,
+            humaneval: 86.4,
+            swe_bench: 30.2,
+            livecode_bench: 48.6,
+            math_500: 80.0,
+            aime_2024: 30.0,
+            gsm8k: 93.2,
+            arc_challenge: 95.2,
+            ifeval: 86.8,
+            mmlu: 86.1,
+            arena_hard: 72.1,
+            mt_bench: 8.9
+        }
+    },
+    {
+        id: "qwen_coder_25",
+        name: "Qwen2.5-Coder 32B",
+        company: "Alibaba",
+        color: "#8b5cf6",
+        releaseDate: "2024-11",
+        description: "Modelo especializado en código de Alibaba. Líder en benchmarks de programación.",
+        scores: {
+            mmlu_pro: 58.2,
+            gpqa_diamond: 38.2,
+            simpleqa: 12.8,
+            humaneval: 92.7,
+            swe_bench: 35.8,
+            livecode_bench: 54.2,
+            math_500: 72.4,
+            aime_2024: 20.0,
+            gsm8k: 88.4,
+            arc_challenge: 88.2,
+            ifeval: 78.4,
+            mmlu: 74.2,
+            arena_hard: 65.8,
+            mt_bench: 8.2
+        }
+    },
+    // ===== Amazon =====
+    {
+        id: "nova_pro",
+        name: "Amazon Nova Pro",
+        company: "Amazon",
+        color: "#ff9900",
+        releaseDate: "2024-12",
+        description: "Modelo multimodal de Amazon. Equilibrio entre capacidad y costo.",
+        scores: {
+            mmlu_pro: 62.8,
+            gpqa_diamond: 42.1,
+            simpleqa: 16.8,
+            humaneval: 82.4,
+            swe_bench: 22.4,
+            livecode_bench: 36.8,
+            math_500: 68.2,
+            aime_2024: 20.0,
+            gsm8k: 89.6,
+            arc_challenge: 92.4,
+            ifeval: 81.2,
+            mmlu: 80.2,
+            arena_hard: 62.4,
+            mt_bench: 8.4
         }
     }
 ];
@@ -595,8 +721,12 @@ class ChartRenderer {
                 const x = groupX + mIndex * barWidth;
                 const y = padding.top + chartHeight - barHeight;
 
-                // Draw bar
-                ctx.fillStyle = model.color;
+                // Draw bar with gradient
+                const gradient = ctx.createLinearGradient(x, y, x, y + barHeight);
+                gradient.addColorStop(0, model.color);
+                gradient.addColorStop(1, model.color + '99');
+
+                ctx.fillStyle = gradient;
                 ctx.beginPath();
                 ctx.roundRect(x, y, barWidth - 2, barHeight, [4, 4, 0, 0]);
                 ctx.fill();
@@ -665,28 +795,35 @@ function populateModelCheckboxes() {
     const container = document.getElementById('model-checkboxes');
     container.innerHTML = '';
 
-    AI_MODELS.forEach(model => {
-        const item = document.createElement('label');
-        item.className = `checkbox-item ${state.selectedModels.includes(model.id) ? 'checked' : ''}`;
-        item.innerHTML = `
-            <input type="checkbox" value="${model.id}" ${state.selectedModels.includes(model.id) ? 'checked' : ''}>
-            <span class="model-color" style="background: ${model.color}"></span>
-            <span>${model.name}</span>
-        `;
+    // Group models by company
+    const companies = [...new Set(AI_MODELS.map(m => m.company))];
 
-        const checkbox = item.querySelector('input');
-        checkbox.addEventListener('change', () => {
-            if (checkbox.checked) {
-                state.selectedModels.push(model.id);
-                item.classList.add('checked');
-            } else {
-                state.selectedModels = state.selectedModels.filter(id => id !== model.id);
-                item.classList.remove('checked');
-            }
-            updateVisualization();
+    companies.forEach(company => {
+        const companyModels = AI_MODELS.filter(m => m.company === company);
+
+        companyModels.forEach(model => {
+            const item = document.createElement('label');
+            item.className = `checkbox-item ${state.selectedModels.includes(model.id) ? 'checked' : ''}`;
+            item.innerHTML = `
+                <input type="checkbox" value="${model.id}" ${state.selectedModels.includes(model.id) ? 'checked' : ''}>
+                <span class="model-color" style="background: ${model.color}"></span>
+                <span>${model.name}</span>
+            `;
+
+            const checkbox = item.querySelector('input');
+            checkbox.addEventListener('change', () => {
+                if (checkbox.checked) {
+                    state.selectedModels.push(model.id);
+                    item.classList.add('checked');
+                } else {
+                    state.selectedModels = state.selectedModels.filter(id => id !== model.id);
+                    item.classList.remove('checked');
+                }
+                updateVisualization();
+            });
+
+            container.appendChild(item);
         });
-
-        container.appendChild(item);
     });
 }
 
@@ -909,7 +1046,7 @@ function renderModelCards() {
             <div class="model-card" style="border-left: 4px solid ${model.color}">
                 <div class="model-card-header">
                     <div class="model-card-color" style="background: ${model.color}20; color: ${model.color}">
-                        🤖
+                        ${getCompanyEmoji(model.company)}
                     </div>
                     <div>
                         <h4>${model.name}</h4>
@@ -936,6 +1073,21 @@ function renderModelCards() {
             </div>
         `;
     }).join('');
+}
+
+function getCompanyEmoji(company) {
+    const emojis = {
+        'OpenAI': '🟢',
+        'Anthropic': '🟠',
+        'Google': '🔵',
+        'Meta': '🔷',
+        'xAI': '⚡',
+        'DeepSeek': '🌊',
+        'Mistral AI': '🌪️',
+        'Alibaba': '☁️',
+        'Amazon': '📦'
+    };
+    return emojis[company] || '🤖';
 }
 
 // ============================================
