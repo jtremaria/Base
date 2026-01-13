@@ -1,0 +1,1823 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sol del Desierto - Simulador de Planta Solar</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --sun-color: #FFD700;
+            --desert-light: #F4E4BC;
+            --desert-dark: #D4A574;
+            --panel-blue: #1a365d;
+            --energy-green: #48bb78;
+            --energy-red: #f56565;
+            --battery-yellow: #ecc94b;
+            --night-blue: #1a202c;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: linear-gradient(180deg, #87CEEB 0%, #F4E4BC 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+            transition: background 2s ease;
+        }
+
+        body.night {
+            background: linear-gradient(180deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, #2d3748 0%, #1a202c 100%);
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+
+        .header h1 {
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .header-stats {
+            display: flex;
+            gap: 25px;
+        }
+
+        .stat-box {
+            text-align: center;
+            background: rgba(255,255,255,0.1);
+            padding: 8px 15px;
+            border-radius: 8px;
+        }
+
+        .stat-box .value {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: var(--energy-green);
+        }
+
+        .stat-box .label {
+            font-size: 0.75rem;
+            opacity: 0.8;
+        }
+
+        /* Main Container */
+        .main-container {
+            display: grid;
+            grid-template-columns: 280px 1fr 300px;
+            gap: 15px;
+            padding: 15px;
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        /* Left Panel - Shop */
+        .shop-panel {
+            background: rgba(255,255,255,0.95);
+            border-radius: 15px;
+            padding: 15px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            max-height: calc(100vh - 120px);
+            overflow-y: auto;
+        }
+
+        .shop-panel h2 {
+            color: #2d3748;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--energy-green);
+            font-size: 1.1rem;
+        }
+
+        .shop-category {
+            margin-bottom: 20px;
+        }
+
+        .shop-category h3 {
+            color: #4a5568;
+            font-size: 0.9rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .shop-item {
+            background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+            border-radius: 10px;
+            padding: 12px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .shop-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            border-color: var(--energy-green);
+        }
+
+        .shop-item.selected {
+            border-color: var(--sun-color);
+            background: linear-gradient(135deg, #fefcbf 0%, #faf089 100%);
+        }
+
+        .shop-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .shop-item-name {
+            font-weight: bold;
+            color: #2d3748;
+            font-size: 0.85rem;
+        }
+
+        .shop-item-price {
+            color: var(--energy-green);
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+
+        .shop-item-stats {
+            font-size: 0.75rem;
+            color: #718096;
+        }
+
+        .shop-item-stats span {
+            display: block;
+            margin-top: 3px;
+        }
+
+        .efficiency-bar {
+            height: 6px;
+            background: #e2e8f0;
+            border-radius: 3px;
+            margin-top: 8px;
+            overflow: hidden;
+        }
+
+        .efficiency-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--energy-green), #38a169);
+            border-radius: 3px;
+            transition: width 0.3s ease;
+        }
+
+        /* Center - Desert View */
+        .desert-view {
+            background: linear-gradient(180deg, transparent 0%, rgba(212,165,116,0.3) 100%);
+            border-radius: 15px;
+            position: relative;
+            min-height: 500px;
+            overflow: hidden;
+        }
+
+        .sky {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 60%;
+            transition: all 2s ease;
+        }
+
+        .sun {
+            position: absolute;
+            width: 80px;
+            height: 80px;
+            background: radial-gradient(circle, #FFD700 0%, #FFA500 50%, transparent 70%);
+            border-radius: 50%;
+            transition: all 0.5s ease;
+            box-shadow: 0 0 60px #FFD700, 0 0 100px #FFA500;
+            z-index: 5;
+        }
+
+        .moon {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            background: radial-gradient(circle at 30% 30%, #f0f0f0 0%, #c0c0c0 100%);
+            border-radius: 50%;
+            box-shadow: 0 0 30px rgba(255,255,255,0.5);
+            opacity: 0;
+            transition: all 0.5s ease;
+            z-index: 5;
+        }
+
+        body.night .moon {
+            opacity: 1;
+        }
+
+        .stars {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 60%;
+            opacity: 0;
+            transition: opacity 2s ease;
+        }
+
+        body.night .stars {
+            opacity: 1;
+        }
+
+        .star {
+            position: absolute;
+            background: white;
+            border-radius: 50%;
+            animation: twinkle 2s infinite;
+        }
+
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 1; }
+        }
+
+        .desert-ground {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 45%;
+            background: linear-gradient(180deg, #D4A574 0%, #C4956A 50%, #B8895E 100%);
+            border-radius: 0 0 15px 15px;
+        }
+
+        .dunes {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 100%;
+        }
+
+        .dune {
+            position: absolute;
+            bottom: 0;
+            background: linear-gradient(180deg, #D4A574 0%, #C9A06F 100%);
+            border-radius: 50% 50% 0 0;
+        }
+
+        .solar-grid {
+            position: absolute;
+            bottom: 20%;
+            left: 50%;
+            transform: translateX(-50%);
+            display: grid;
+            grid-template-columns: repeat(10, 1fr);
+            grid-template-rows: repeat(5, 1fr);
+            gap: 5px;
+            padding: 10px;
+        }
+
+        .grid-cell {
+            width: 45px;
+            height: 35px;
+            background: rgba(255,255,255,0.2);
+            border: 2px dashed rgba(255,255,255,0.4);
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .grid-cell:hover {
+            background: rgba(72, 187, 120, 0.3);
+            border-color: var(--energy-green);
+        }
+
+        .grid-cell.has-panel {
+            background: linear-gradient(135deg, #1a365d 0%, #2c5282 100%);
+            border: none;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        }
+
+        .grid-cell.has-panel::before {
+            content: '';
+            width: 90%;
+            height: 80%;
+            background: linear-gradient(135deg, #2b6cb0 0%, #4299e1 50%, #2b6cb0 100%);
+            border-radius: 2px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .grid-cell.has-battery {
+            background: linear-gradient(135deg, #744210 0%, #975a16 100%);
+            border: none;
+        }
+
+        .grid-cell.has-battery::before {
+            content: '🔋';
+            font-size: 20px;
+        }
+
+        /* Time Controls */
+        .time-control {
+            position: absolute;
+            top: 15px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.7);
+            padding: 10px 20px;
+            border-radius: 25px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            color: white;
+            z-index: 10;
+        }
+
+        .time-display {
+            font-size: 1.5rem;
+            font-weight: bold;
+            min-width: 80px;
+            text-align: center;
+        }
+
+        .speed-controls {
+            display: flex;
+            gap: 5px;
+        }
+
+        .speed-btn {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            padding: 5px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .speed-btn:hover, .speed-btn.active {
+            background: var(--energy-green);
+        }
+
+        /* Irradiance Meter */
+        .irradiance-meter {
+            position: absolute;
+            top: 70px;
+            right: 15px;
+            background: rgba(0,0,0,0.8);
+            padding: 15px;
+            border-radius: 10px;
+            color: white;
+            z-index: 10;
+            min-width: 150px;
+        }
+
+        .irradiance-meter h4 {
+            font-size: 0.8rem;
+            opacity: 0.8;
+            margin-bottom: 8px;
+        }
+
+        .irradiance-value {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: var(--sun-color);
+        }
+
+        .irradiance-unit {
+            font-size: 0.8rem;
+            opacity: 0.7;
+        }
+
+        .irradiance-bar {
+            height: 8px;
+            background: #2d3748;
+            border-radius: 4px;
+            margin-top: 10px;
+            overflow: hidden;
+        }
+
+        .irradiance-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #f56565, #ecc94b, #48bb78);
+            transition: width 0.3s ease;
+        }
+
+        /* Right Panel - Info & Stats */
+        .info-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            max-height: calc(100vh - 120px);
+            overflow-y: auto;
+        }
+
+        .info-card {
+            background: rgba(255,255,255,0.95);
+            border-radius: 15px;
+            padding: 15px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+        }
+
+        .info-card h3 {
+            color: #2d3748;
+            font-size: 1rem;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Energy Flow Diagram */
+        .energy-flow {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .flow-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px;
+            background: #f7fafc;
+            border-radius: 8px;
+        }
+
+        .flow-label {
+            font-size: 0.8rem;
+            color: #4a5568;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .flow-value {
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+
+        .flow-value.positive {
+            color: var(--energy-green);
+        }
+
+        .flow-value.negative {
+            color: var(--energy-red);
+        }
+
+        /* Battery Status */
+        .battery-visual {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 10px 0;
+        }
+
+        .battery-icon {
+            width: 60px;
+            height: 30px;
+            border: 3px solid #4a5568;
+            border-radius: 5px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .battery-icon::after {
+            content: '';
+            position: absolute;
+            right: -8px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 5px;
+            height: 12px;
+            background: #4a5568;
+            border-radius: 0 2px 2px 0;
+        }
+
+        .battery-level {
+            height: 100%;
+            background: linear-gradient(90deg, var(--energy-green), #38a169);
+            transition: width 0.5s ease;
+        }
+
+        .battery-level.low {
+            background: linear-gradient(90deg, var(--energy-red), #c53030);
+        }
+
+        .battery-level.medium {
+            background: linear-gradient(90deg, var(--battery-yellow), #d69e2e);
+        }
+
+        .battery-percentage {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #2d3748;
+        }
+
+        /* Demand Chart */
+        .demand-chart {
+            height: 80px;
+            display: flex;
+            align-items: flex-end;
+            gap: 2px;
+            padding: 10px 0;
+        }
+
+        .demand-bar {
+            flex: 1;
+            background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
+            border-radius: 3px 3px 0 0;
+            transition: height 0.3s ease;
+            min-height: 5px;
+        }
+
+        .demand-bar.current {
+            background: linear-gradient(180deg, var(--sun-color) 0%, #ed8936 100%);
+        }
+
+        /* Educational Tips */
+        .tip-box {
+            background: linear-gradient(135deg, #ebf8ff 0%, #bee3f8 100%);
+            border-left: 4px solid #3182ce;
+            padding: 12px;
+            border-radius: 0 8px 8px 0;
+            margin-top: 10px;
+        }
+
+        .tip-box h4 {
+            color: #2b6cb0;
+            font-size: 0.85rem;
+            margin-bottom: 5px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .tip-box p {
+            font-size: 0.75rem;
+            color: #2c5282;
+            line-height: 1.4;
+        }
+
+        /* Comparison Table */
+        .comparison-table {
+            width: 100%;
+            font-size: 0.75rem;
+            border-collapse: collapse;
+        }
+
+        .comparison-table th {
+            background: #edf2f7;
+            padding: 8px 5px;
+            text-align: left;
+            color: #4a5568;
+        }
+
+        .comparison-table td {
+            padding: 6px 5px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .comparison-table tr:hover {
+            background: #f7fafc;
+        }
+
+        /* Notifications */
+        .notification {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(45, 55, 72, 0.95);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 10px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            z-index: 100;
+            animation: slideUp 0.5s ease;
+            max-width: 400px;
+            text-align: center;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateX(-50%) translateY(100px); opacity: 0; }
+            to { transform: translateX(-50%) translateY(0); opacity: 1; }
+        }
+
+        .notification.success {
+            border-left: 4px solid var(--energy-green);
+        }
+
+        .notification.warning {
+            border-left: 4px solid var(--battery-yellow);
+        }
+
+        .notification.error {
+            border-left: 4px solid var(--energy-red);
+        }
+
+        /* Tutorial Overlay */
+        .tutorial-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.8);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .tutorial-card {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            max-width: 600px;
+            text-align: center;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .tutorial-card h2 {
+            color: #2d3748;
+            margin-bottom: 15px;
+            font-size: 1.8rem;
+        }
+
+        .tutorial-card p {
+            color: #4a5568;
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+
+        .tutorial-card .highlight {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+        }
+
+        .tutorial-btn {
+            background: linear-gradient(135deg, var(--energy-green) 0%, #38a169 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .tutorial-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(72, 187, 120, 0.4);
+        }
+
+        /* Achievements */
+        .achievement-popup {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+            z-index: 100;
+            animation: slideIn 0.5s ease;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(100px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        .achievement-icon {
+            font-size: 2.5rem;
+        }
+
+        .achievement-text h4 {
+            color: #744210;
+            margin-bottom: 5px;
+        }
+
+        .achievement-text p {
+            color: #975a16;
+            font-size: 0.85rem;
+        }
+
+        /* Weather Effects */
+        .weather-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            pointer-events: none;
+            z-index: 8;
+        }
+
+        .cloud {
+            position: absolute;
+            background: rgba(255,255,255,0.8);
+            border-radius: 50%;
+            animation: float 20s infinite linear;
+        }
+
+        @keyframes float {
+            from { transform: translateX(-100px); }
+            to { transform: translateX(calc(100% + 100px)); }
+        }
+
+        .sandstorm {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg,
+                transparent 0%,
+                rgba(212, 165, 116, 0.3) 25%,
+                rgba(212, 165, 116, 0.5) 50%,
+                rgba(212, 165, 116, 0.3) 75%,
+                transparent 100%);
+            animation: sandstormMove 2s infinite linear;
+            opacity: 0;
+            transition: opacity 1s ease;
+        }
+
+        .sandstorm.active {
+            opacity: 1;
+        }
+
+        @keyframes sandstormMove {
+            from { transform: translateX(-100%); }
+            to { transform: translateX(100%); }
+        }
+
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .main-container {
+                grid-template-columns: 1fr;
+            }
+
+            .shop-panel, .info-panel {
+                max-height: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Tutorial Overlay -->
+    <div class="tutorial-overlay" id="tutorial">
+        <div class="tutorial-card">
+            <h2>☀️ Sol del Desierto</h2>
+            <p>Bienvenido al simulador de plantas de energía solar fotovoltaica.
+               Aprenderás cómo funcionan las plantas solares como las del <strong>Desierto de Atacama</strong> en Chile,
+               uno de los lugares con mayor radiación solar del mundo.</p>
+
+            <div class="highlight">
+                <strong>🎯 Tu misión:</strong> Construir y gestionar una planta solar que abastezca
+                la demanda energética de una ciudad, balanceando generación y almacenamiento.
+            </div>
+
+            <p>📚 <em>Basado en principios de aprendizaje experiencial: aprenderás haciendo y
+               observando las consecuencias de tus decisiones.</em></p>
+
+            <button class="tutorial-btn" onclick="startGame()">Comenzar Simulación</button>
+        </div>
+    </div>
+
+    <!-- Header -->
+    <header class="header">
+        <h1>☀️ Sol del Desierto</h1>
+        <div class="header-stats">
+            <div class="stat-box">
+                <div class="value" id="money">$50,000</div>
+                <div class="label">Presupuesto</div>
+            </div>
+            <div class="stat-box">
+                <div class="value" id="totalPanels">0</div>
+                <div class="label">Paneles</div>
+            </div>
+            <div class="stat-box">
+                <div class="value" id="totalCapacity">0 kW</div>
+                <div class="label">Capacidad</div>
+            </div>
+            <div class="stat-box">
+                <div class="value" id="reputation">⭐⭐⭐</div>
+                <div class="label">Reputación</div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <div class="main-container">
+        <!-- Left Panel - Shop -->
+        <div class="shop-panel">
+            <h2>🛒 Tienda de Equipos</h2>
+
+            <div class="shop-category">
+                <h3>☀️ Paneles Solares</h3>
+
+                <div class="shop-item" data-type="panel" data-id="mono" onclick="selectItem(this)">
+                    <div class="shop-item-header">
+                        <span class="shop-item-name">Monocristalino</span>
+                        <span class="shop-item-price">$800</span>
+                    </div>
+                    <div class="shop-item-stats">
+                        <span>⚡ Potencia: 400W</span>
+                        <span>📊 Eficiencia: 22%</span>
+                        <span>🌡️ Coef. Temp: -0.35%/°C</span>
+                    </div>
+                    <div class="efficiency-bar">
+                        <div class="efficiency-fill" style="width: 88%"></div>
+                    </div>
+                </div>
+
+                <div class="shop-item" data-type="panel" data-id="poly" onclick="selectItem(this)">
+                    <div class="shop-item-header">
+                        <span class="shop-item-name">Policristalino</span>
+                        <span class="shop-item-price">$500</span>
+                    </div>
+                    <div class="shop-item-stats">
+                        <span>⚡ Potencia: 320W</span>
+                        <span>📊 Eficiencia: 17%</span>
+                        <span>🌡️ Coef. Temp: -0.40%/°C</span>
+                    </div>
+                    <div class="efficiency-bar">
+                        <div class="efficiency-fill" style="width: 68%"></div>
+                    </div>
+                </div>
+
+                <div class="shop-item" data-type="panel" data-id="thin" onclick="selectItem(this)">
+                    <div class="shop-item-header">
+                        <span class="shop-item-name">Capa Fina (CdTe)</span>
+                        <span class="shop-item-price">$350</span>
+                    </div>
+                    <div class="shop-item-stats">
+                        <span>⚡ Potencia: 250W</span>
+                        <span>📊 Eficiencia: 12%</span>
+                        <span>🌡️ Coef. Temp: -0.20%/°C</span>
+                    </div>
+                    <div class="efficiency-bar">
+                        <div class="efficiency-fill" style="width: 48%"></div>
+                    </div>
+                </div>
+
+                <div class="shop-item" data-type="panel" data-id="bifacial" onclick="selectItem(this)">
+                    <div class="shop-item-header">
+                        <span class="shop-item-name">Bifacial</span>
+                        <span class="shop-item-price">$1,200</span>
+                    </div>
+                    <div class="shop-item-stats">
+                        <span>⚡ Potencia: 500W (+30% trasero)</span>
+                        <span>📊 Eficiencia: 24%</span>
+                        <span>🌡️ Coef. Temp: -0.32%/°C</span>
+                    </div>
+                    <div class="efficiency-bar">
+                        <div class="efficiency-fill" style="width: 96%"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="shop-category">
+                <h3>🔋 Sistemas de Almacenamiento</h3>
+
+                <div class="shop-item" data-type="battery" data-id="lithium" onclick="selectItem(this)">
+                    <div class="shop-item-header">
+                        <span class="shop-item-name">Batería Litio-Ion</span>
+                        <span class="shop-item-price">$5,000</span>
+                    </div>
+                    <div class="shop-item-stats">
+                        <span>🔋 Capacidad: 50 kWh</span>
+                        <span>⚡ Potencia: 25 kW</span>
+                        <span>🔄 Ciclos: 6,000</span>
+                        <span>📊 Eficiencia: 95%</span>
+                    </div>
+                    <div class="efficiency-bar">
+                        <div class="efficiency-fill" style="width: 95%"></div>
+                    </div>
+                </div>
+
+                <div class="shop-item" data-type="battery" data-id="lfp" onclick="selectItem(this)">
+                    <div class="shop-item-header">
+                        <span class="shop-item-name">Batería LFP (LiFePO4)</span>
+                        <span class="shop-item-price">$6,500</span>
+                    </div>
+                    <div class="shop-item-stats">
+                        <span>🔋 Capacidad: 60 kWh</span>
+                        <span>⚡ Potencia: 30 kW</span>
+                        <span>🔄 Ciclos: 10,000</span>
+                        <span>📊 Eficiencia: 92%</span>
+                        <span>🌡️ Mejor en calor extremo</span>
+                    </div>
+                    <div class="efficiency-bar">
+                        <div class="efficiency-fill" style="width: 92%"></div>
+                    </div>
+                </div>
+
+                <div class="shop-item" data-type="battery" data-id="sodium" onclick="selectItem(this)">
+                    <div class="shop-item-header">
+                        <span class="shop-item-name">Batería Sodio-Ion</span>
+                        <span class="shop-item-price">$3,500</span>
+                    </div>
+                    <div class="shop-item-stats">
+                        <span>🔋 Capacidad: 40 kWh</span>
+                        <span>⚡ Potencia: 20 kW</span>
+                        <span>🔄 Ciclos: 5,000</span>
+                        <span>📊 Eficiencia: 88%</span>
+                        <span>🌍 Más sostenible</span>
+                    </div>
+                    <div class="efficiency-bar">
+                        <div class="efficiency-fill" style="width: 75%"></div>
+                    </div>
+                </div>
+
+                <div class="shop-item" data-type="battery" data-id="flow" onclick="selectItem(this)">
+                    <div class="shop-item-header">
+                        <span class="shop-item-name">Batería de Flujo (Vanadio)</span>
+                        <span class="shop-item-price">$15,000</span>
+                    </div>
+                    <div class="shop-item-stats">
+                        <span>🔋 Capacidad: 200 kWh</span>
+                        <span>⚡ Potencia: 50 kW</span>
+                        <span>🔄 Ciclos: 20,000+</span>
+                        <span>📊 Eficiencia: 75%</span>
+                        <span>📈 Escalable independiente</span>
+                    </div>
+                    <div class="efficiency-bar">
+                        <div class="efficiency-fill" style="width: 75%"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tip-box">
+                <h4>💡 Dato Educativo</h4>
+                <p id="shopTip">El Desierto de Atacama recibe hasta 3,000 kWh/m² de radiación solar anual,
+                   casi el doble que Europa Central. ¡Por eso es ideal para plantas solares!</p>
+            </div>
+        </div>
+
+        <!-- Center - Desert View -->
+        <div class="desert-view">
+            <!-- Time Control -->
+            <div class="time-control">
+                <div class="speed-controls">
+                    <button class="speed-btn" onclick="setSpeed(0)">⏸️</button>
+                    <button class="speed-btn active" onclick="setSpeed(1)">1x</button>
+                    <button class="speed-btn" onclick="setSpeed(5)">5x</button>
+                    <button class="speed-btn" onclick="setSpeed(20)">20x</button>
+                </div>
+                <div class="time-display" id="timeDisplay">12:00</div>
+                <div id="dayCounter">Día 1</div>
+            </div>
+
+            <!-- Irradiance Meter -->
+            <div class="irradiance-meter">
+                <h4>Irradiancia Solar</h4>
+                <div class="irradiance-value" id="irradianceValue">1000</div>
+                <span class="irradiance-unit">W/m²</span>
+                <div class="irradiance-bar">
+                    <div class="irradiance-fill" id="irradianceFill" style="width: 100%"></div>
+                </div>
+            </div>
+
+            <!-- Sky Elements -->
+            <div class="sky">
+                <div class="sun" id="sun"></div>
+                <div class="moon" id="moon"></div>
+                <div class="stars" id="stars"></div>
+            </div>
+
+            <!-- Weather Overlay -->
+            <div class="weather-overlay">
+                <div class="sandstorm" id="sandstorm"></div>
+            </div>
+
+            <!-- Desert Ground -->
+            <div class="desert-ground">
+                <div class="dunes">
+                    <div class="dune" style="left: -5%; width: 30%; height: 60%;"></div>
+                    <div class="dune" style="left: 20%; width: 25%; height: 45%;"></div>
+                    <div class="dune" style="left: 50%; width: 35%; height: 55%;"></div>
+                    <div class="dune" style="left: 75%; width: 30%; height: 50%;"></div>
+                </div>
+            </div>
+
+            <!-- Solar Grid -->
+            <div class="solar-grid" id="solarGrid"></div>
+        </div>
+
+        <!-- Right Panel - Info & Stats -->
+        <div class="info-panel">
+            <!-- Energy Flow -->
+            <div class="info-card">
+                <h3>⚡ Flujo de Energía</h3>
+                <div class="energy-flow">
+                    <div class="flow-row">
+                        <span class="flow-label">☀️ Generación Solar</span>
+                        <span class="flow-value positive" id="generation">0 kW</span>
+                    </div>
+                    <div class="flow-row">
+                        <span class="flow-label">🏙️ Demanda Ciudad</span>
+                        <span class="flow-value negative" id="demand">-50 kW</span>
+                    </div>
+                    <div class="flow-row">
+                        <span class="flow-label">🔋 Flujo Batería</span>
+                        <span class="flow-value" id="batteryFlow">0 kW</span>
+                    </div>
+                    <div class="flow-row" style="background: #edf2f7; font-weight: bold;">
+                        <span class="flow-label">📊 Balance</span>
+                        <span class="flow-value" id="balance">-50 kW</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Battery Status -->
+            <div class="info-card">
+                <h3>🔋 Estado de Baterías</h3>
+                <div class="battery-visual">
+                    <div class="battery-icon">
+                        <div class="battery-level" id="batteryLevel" style="width: 50%"></div>
+                    </div>
+                    <span class="battery-percentage" id="batteryPercentage">50%</span>
+                </div>
+                <div class="energy-flow">
+                    <div class="flow-row">
+                        <span class="flow-label">Almacenado</span>
+                        <span class="flow-value" id="batteryStored">0 / 0 kWh</span>
+                    </div>
+                    <div class="flow-row">
+                        <span class="flow-label">Potencia Máx</span>
+                        <span class="flow-value" id="batteryPower">0 kW</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Demand Chart -->
+            <div class="info-card">
+                <h3>📈 Demanda 24h</h3>
+                <div class="demand-chart" id="demandChart"></div>
+                <div class="tip-box">
+                    <h4>📚 Curva de Demanda</h4>
+                    <p>La demanda eléctrica varía durante el día. Picos al mediodía (aire acondicionado)
+                       y noche (iluminación, electrodomésticos). Las baterías son cruciales para
+                       cubrir la demanda nocturna.</p>
+                </div>
+            </div>
+
+            <!-- Technology Comparison -->
+            <div class="info-card">
+                <h3>📊 Comparación de Tecnologías</h3>
+                <table class="comparison-table">
+                    <thead>
+                        <tr>
+                            <th>Batería</th>
+                            <th>$/kWh</th>
+                            <th>Vida</th>
+                            <th>Efic.</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Litio-Ion</td>
+                            <td>$100</td>
+                            <td>15 años</td>
+                            <td>95%</td>
+                        </tr>
+                        <tr>
+                            <td>LFP</td>
+                            <td>$108</td>
+                            <td>20+ años</td>
+                            <td>92%</td>
+                        </tr>
+                        <tr>
+                            <td>Sodio-Ion</td>
+                            <td>$87</td>
+                            <td>12 años</td>
+                            <td>88%</td>
+                        </tr>
+                        <tr>
+                            <td>Flujo</td>
+                            <td>$75</td>
+                            <td>25+ años</td>
+                            <td>75%</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div class="tip-box">
+                    <h4>💡 ¿Sabías que?</h4>
+                    <p id="batteryTip">Las baterías de flujo de vanadio pueden escalar capacidad (kWh)
+                       y potencia (kW) de forma independiente. Ideal para almacenamiento a gran escala.</p>
+                </div>
+            </div>
+
+            <!-- Daily Stats -->
+            <div class="info-card">
+                <h3>📆 Estadísticas del Día</h3>
+                <div class="energy-flow">
+                    <div class="flow-row">
+                        <span class="flow-label">Energía Generada</span>
+                        <span class="flow-value positive" id="dailyGenerated">0 kWh</span>
+                    </div>
+                    <div class="flow-row">
+                        <span class="flow-label">Energía Consumida</span>
+                        <span class="flow-value negative" id="dailyConsumed">0 kWh</span>
+                    </div>
+                    <div class="flow-row">
+                        <span class="flow-label">Ingresos</span>
+                        <span class="flow-value positive" id="dailyIncome">$0</span>
+                    </div>
+                    <div class="flow-row">
+                        <span class="flow-label">Déficit (comprado)</span>
+                        <span class="flow-value negative" id="dailyDeficit">$0</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ==================== GAME STATE ====================
+        const state = {
+            money: 50000,
+            day: 1,
+            hour: 6, // Start at 6 AM
+            minute: 0,
+            speed: 1, // Game speed multiplier
+            paused: false,
+
+            // Grid state (10x5 = 50 cells)
+            grid: Array(50).fill(null),
+
+            // Equipment stats
+            panels: {
+                mono: { count: 0, power: 400, efficiency: 0.22, tempCoef: -0.0035, price: 800 },
+                poly: { count: 0, power: 320, efficiency: 0.17, tempCoef: -0.0040, price: 500 },
+                thin: { count: 0, power: 250, efficiency: 0.12, tempCoef: -0.0020, price: 350 },
+                bifacial: { count: 0, power: 500, efficiency: 0.24, tempCoef: -0.0032, price: 1200, bonus: 1.3 }
+            },
+
+            batteries: {
+                lithium: { count: 0, capacity: 50, power: 25, efficiency: 0.95, cycles: 6000, price: 5000 },
+                lfp: { count: 0, capacity: 60, power: 30, efficiency: 0.92, cycles: 10000, price: 6500 },
+                sodium: { count: 0, capacity: 40, power: 20, efficiency: 0.88, cycles: 5000, price: 3500 },
+                flow: { count: 0, capacity: 200, power: 50, efficiency: 0.75, cycles: 20000, price: 15000 }
+            },
+
+            // Current energy state
+            batteryCharge: 0, // kWh stored
+            totalBatteryCapacity: 0, // kWh max
+            totalBatteryPower: 0, // kW max charge/discharge rate
+            batteryEfficiency: 0.9, // Weighted average
+
+            // Weather
+            weather: 'clear', // clear, cloudy, sandstorm
+            temperature: 35, // Celsius
+
+            // Daily stats
+            dailyGenerated: 0,
+            dailyConsumed: 0,
+            dailyIncome: 0,
+            dailyDeficit: 0,
+
+            // Achievements
+            achievements: [],
+
+            // Selected item for placement
+            selectedItem: null,
+            selectedType: null
+        };
+
+        // ==================== CONSTANTS ====================
+        const ATACAMA_MAX_IRRADIANCE = 1200; // W/m² - Higher than average due to altitude and clear skies
+        const ELECTRICITY_SELL_PRICE = 0.08; // $/kWh
+        const ELECTRICITY_BUY_PRICE = 0.15; // $/kWh (more expensive to buy than sell)
+
+        // Demand curve (kW per hour, 24 hours)
+        const DEMAND_CURVE = [
+            30, 25, 22, 20, 22, 28, // 00:00 - 05:00
+            40, 55, 70, 80, 90, 95, // 06:00 - 11:00
+            100, 95, 90, 85, 80, 85, // 12:00 - 17:00
+            95, 100, 90, 75, 55, 40  // 18:00 - 23:00
+        ];
+
+        // Educational tips
+        const TIPS = {
+            panel: [
+                "Los paneles monocristalinos tienen mayor eficiencia porque usan silicio de alta pureza con estructura cristalina uniforme.",
+                "Los paneles policristalinos son más baratos porque el proceso de fabricación es menos costoso, pero tienen menor eficiencia.",
+                "Los paneles de capa fina (thin-film) funcionan mejor en climas calientes debido a su menor coeficiente de temperatura.",
+                "Los paneles bifaciales capturan luz reflejada del suelo (albedo). En el desierto, la arena clara refleja hasta 30% más luz."
+            ],
+            battery: [
+                "Las baterías de litio-ion dominan el mercado por su alta densidad energética y eficiencia del 95%.",
+                "Las baterías LFP (LiFePO4) son más seguras y duraderas, ideales para climas extremos como el desierto.",
+                "Las baterías de sodio-ion no usan litio ni cobalto, haciéndolas más sostenibles y económicas.",
+                "Las baterías de flujo pueden durar 25+ años y escalar capacidad agregando más electrolito."
+            ],
+            general: [
+                "El Desierto de Atacama tiene 330+ días de sol al año, ideal para energía solar.",
+                "La altitud de Atacama (2,400m+) aumenta la irradiación solar por menor atmósfera.",
+                "El 'duck curve' describe cómo la demanda cae cuando hay sol y sube cuando no lo hay.",
+                "Chile genera más del 30% de su electricidad de fuentes solares gracias a plantas como Sol del Desierto."
+            ]
+        };
+
+        // ==================== INITIALIZATION ====================
+        function init() {
+            createGrid();
+            createStars();
+            createDemandChart();
+            updateDisplay();
+
+            // Start game loop
+            setInterval(gameLoop, 100); // 100ms tick
+        }
+
+        function createGrid() {
+            const grid = document.getElementById('solarGrid');
+            grid.innerHTML = '';
+
+            for (let i = 0; i < 50; i++) {
+                const cell = document.createElement('div');
+                cell.className = 'grid-cell';
+                cell.dataset.index = i;
+                cell.onclick = () => placeItem(i);
+                grid.appendChild(cell);
+            }
+        }
+
+        function createStars() {
+            const starsContainer = document.getElementById('stars');
+            for (let i = 0; i < 50; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                star.style.left = Math.random() * 100 + '%';
+                star.style.top = Math.random() * 100 + '%';
+                star.style.width = Math.random() * 3 + 1 + 'px';
+                star.style.height = star.style.width;
+                star.style.animationDelay = Math.random() * 2 + 's';
+                starsContainer.appendChild(star);
+            }
+        }
+
+        function createDemandChart() {
+            const chart = document.getElementById('demandChart');
+            chart.innerHTML = '';
+
+            for (let i = 0; i < 24; i++) {
+                const bar = document.createElement('div');
+                bar.className = 'demand-bar';
+                bar.style.height = (DEMAND_CURVE[i] / 100 * 100) + '%';
+                bar.title = `${i}:00 - ${DEMAND_CURVE[i]} kW`;
+                chart.appendChild(bar);
+            }
+        }
+
+        // ==================== GAME LOOP ====================
+        function gameLoop() {
+            if (state.paused) return;
+
+            // Advance time based on speed
+            state.minute += state.speed;
+            if (state.minute >= 60) {
+                state.minute = 0;
+                state.hour++;
+
+                if (state.hour >= 24) {
+                    state.hour = 0;
+                    endDay();
+                }
+            }
+
+            // Calculate energy
+            const irradiance = calculateIrradiance();
+            const generation = calculateGeneration(irradiance);
+            const demand = getCurrentDemand();
+            const balance = generation - demand;
+
+            // Handle battery charging/discharging
+            handleBatteryFlow(balance);
+
+            // Update stats
+            state.dailyGenerated += generation * (state.speed / 3600); // Convert to kWh
+            state.dailyConsumed += demand * (state.speed / 3600);
+
+            // Update display
+            updateDisplay();
+            updateSunPosition();
+            updateDemandChart();
+
+            // Random weather events
+            if (Math.random() < 0.0001 * state.speed) {
+                triggerWeatherEvent();
+            }
+        }
+
+        function calculateIrradiance() {
+            // Solar irradiance based on time of day (simplified model)
+            const hourDecimal = state.hour + state.minute / 60;
+
+            // Sun rises at 6, peaks at 12, sets at 18
+            let irradiance = 0;
+
+            if (hourDecimal >= 6 && hourDecimal <= 18) {
+                // Sinusoidal model
+                const dayProgress = (hourDecimal - 6) / 12; // 0 to 1
+                irradiance = Math.sin(dayProgress * Math.PI) * ATACAMA_MAX_IRRADIANCE;
+            }
+
+            // Weather effects
+            if (state.weather === 'cloudy') {
+                irradiance *= 0.4;
+            } else if (state.weather === 'sandstorm') {
+                irradiance *= 0.2;
+            }
+
+            return Math.max(0, irradiance);
+        }
+
+        function calculateGeneration(irradiance) {
+            let totalPower = 0;
+
+            // Calculate temperature effect (desert can reach 45°C)
+            const tempDelta = state.temperature - 25; // Reference is 25°C
+
+            for (const [type, panel] of Object.entries(state.panels)) {
+                if (panel.count > 0) {
+                    // Base power at current irradiance
+                    let power = panel.power * (irradiance / 1000) * panel.count;
+
+                    // Temperature derating
+                    power *= (1 + panel.tempCoef * tempDelta);
+
+                    // Bifacial bonus
+                    if (type === 'bifacial') {
+                        power *= panel.bonus;
+                    }
+
+                    totalPower += power;
+                }
+            }
+
+            return totalPower / 1000; // Convert W to kW
+        }
+
+        function getCurrentDemand() {
+            const hourIndex = Math.floor(state.hour);
+            const nextHour = (hourIndex + 1) % 24;
+            const fraction = state.minute / 60;
+
+            // Interpolate between hours
+            return DEMAND_CURVE[hourIndex] * (1 - fraction) + DEMAND_CURVE[nextHour] * fraction;
+        }
+
+        function handleBatteryFlow(balance) {
+            if (state.totalBatteryCapacity === 0) {
+                // No batteries - handle deficit
+                if (balance < 0) {
+                    const deficit = Math.abs(balance) * (state.speed / 3600);
+                    const cost = deficit * ELECTRICITY_BUY_PRICE;
+                    state.money -= cost;
+                    state.dailyDeficit += cost;
+                } else {
+                    // Sell excess
+                    const excess = balance * (state.speed / 3600);
+                    const income = excess * ELECTRICITY_SELL_PRICE;
+                    state.money += income;
+                    state.dailyIncome += income;
+                }
+                return;
+            }
+
+            if (balance > 0) {
+                // Excess energy - charge batteries
+                const chargeRate = Math.min(balance, state.totalBatteryPower);
+                const chargeAmount = chargeRate * (state.speed / 3600) * state.batteryEfficiency;
+                const newCharge = Math.min(state.batteryCharge + chargeAmount, state.totalBatteryCapacity);
+                const actualCharged = newCharge - state.batteryCharge;
+                state.batteryCharge = newCharge;
+
+                // Sell remaining excess
+                const excess = (balance - actualCharged * 3600 / state.speed) * (state.speed / 3600);
+                if (excess > 0) {
+                    const income = excess * ELECTRICITY_SELL_PRICE;
+                    state.money += income;
+                    state.dailyIncome += income;
+                }
+            } else {
+                // Deficit - discharge batteries
+                const dischargeRate = Math.min(Math.abs(balance), state.totalBatteryPower);
+                const dischargeAmount = dischargeRate * (state.speed / 3600);
+                const newCharge = Math.max(state.batteryCharge - dischargeAmount, 0);
+                const actualDischarged = state.batteryCharge - newCharge;
+                state.batteryCharge = newCharge;
+
+                // Buy remaining deficit
+                const remainingDeficit = (Math.abs(balance) - actualDischarged * 3600 / state.speed) * (state.speed / 3600);
+                if (remainingDeficit > 0) {
+                    const cost = remainingDeficit * ELECTRICITY_BUY_PRICE;
+                    state.money -= cost;
+                    state.dailyDeficit += cost;
+                }
+            }
+        }
+
+        function endDay() {
+            state.day++;
+
+            // Show daily summary
+            showNotification(`Día ${state.day - 1} completado! Generado: ${state.dailyGenerated.toFixed(1)} kWh, Ingresos: $${state.dailyIncome.toFixed(2)}`, 'success');
+
+            // Check achievements
+            checkAchievements();
+
+            // Reset daily stats
+            state.dailyGenerated = 0;
+            state.dailyConsumed = 0;
+            state.dailyIncome = 0;
+            state.dailyDeficit = 0;
+
+            // Random temperature variation
+            state.temperature = 30 + Math.random() * 15;
+        }
+
+        // ==================== UI UPDATES ====================
+        function updateDisplay() {
+            // Header stats
+            document.getElementById('money').textContent = '$' + Math.floor(state.money).toLocaleString();
+
+            const totalPanels = Object.values(state.panels).reduce((sum, p) => sum + p.count, 0);
+            document.getElementById('totalPanels').textContent = totalPanels;
+
+            const totalCapacity = Object.entries(state.panels).reduce((sum, [type, p]) => {
+                return sum + p.count * p.power;
+            }, 0) / 1000;
+            document.getElementById('totalCapacity').textContent = totalCapacity.toFixed(1) + ' kW';
+
+            // Update reputation based on performance
+            updateReputation();
+
+            // Time display
+            const hours = String(state.hour).padStart(2, '0');
+            const minutes = String(Math.floor(state.minute)).padStart(2, '0');
+            document.getElementById('timeDisplay').textContent = `${hours}:${minutes}`;
+            document.getElementById('dayCounter').textContent = `Día ${state.day}`;
+
+            // Irradiance
+            const irradiance = calculateIrradiance();
+            document.getElementById('irradianceValue').textContent = Math.round(irradiance);
+            document.getElementById('irradianceFill').style.width = (irradiance / ATACAMA_MAX_IRRADIANCE * 100) + '%';
+
+            // Energy flow
+            const generation = calculateGeneration(irradiance);
+            const demand = getCurrentDemand();
+            const balance = generation - demand;
+
+            document.getElementById('generation').textContent = generation.toFixed(1) + ' kW';
+            document.getElementById('demand').textContent = '-' + demand.toFixed(1) + ' kW';
+
+            const batteryFlow = document.getElementById('batteryFlow');
+            if (balance > 0 && state.totalBatteryCapacity > 0) {
+                batteryFlow.textContent = '+' + Math.min(balance, state.totalBatteryPower).toFixed(1) + ' kW';
+                batteryFlow.className = 'flow-value positive';
+            } else if (balance < 0 && state.batteryCharge > 0) {
+                batteryFlow.textContent = '-' + Math.min(Math.abs(balance), state.totalBatteryPower).toFixed(1) + ' kW';
+                batteryFlow.className = 'flow-value negative';
+            } else {
+                batteryFlow.textContent = '0 kW';
+                batteryFlow.className = 'flow-value';
+            }
+
+            const balanceEl = document.getElementById('balance');
+            balanceEl.textContent = (balance >= 0 ? '+' : '') + balance.toFixed(1) + ' kW';
+            balanceEl.className = 'flow-value ' + (balance >= 0 ? 'positive' : 'negative');
+
+            // Battery status
+            const batteryPercent = state.totalBatteryCapacity > 0
+                ? (state.batteryCharge / state.totalBatteryCapacity * 100)
+                : 0;
+            document.getElementById('batteryLevel').style.width = batteryPercent + '%';
+            document.getElementById('batteryPercentage').textContent = Math.round(batteryPercent) + '%';
+            document.getElementById('batteryStored').textContent =
+                `${state.batteryCharge.toFixed(1)} / ${state.totalBatteryCapacity} kWh`;
+            document.getElementById('batteryPower').textContent = state.totalBatteryPower + ' kW';
+
+            // Battery level color
+            const batteryLevelEl = document.getElementById('batteryLevel');
+            if (batteryPercent < 20) {
+                batteryLevelEl.className = 'battery-level low';
+            } else if (batteryPercent < 50) {
+                batteryLevelEl.className = 'battery-level medium';
+            } else {
+                batteryLevelEl.className = 'battery-level';
+            }
+
+            // Daily stats
+            document.getElementById('dailyGenerated').textContent = state.dailyGenerated.toFixed(1) + ' kWh';
+            document.getElementById('dailyConsumed').textContent = state.dailyConsumed.toFixed(1) + ' kWh';
+            document.getElementById('dailyIncome').textContent = '$' + state.dailyIncome.toFixed(2);
+            document.getElementById('dailyDeficit').textContent = '-$' + state.dailyDeficit.toFixed(2);
+
+            // Night mode
+            if (state.hour >= 19 || state.hour < 6) {
+                document.body.classList.add('night');
+            } else {
+                document.body.classList.remove('night');
+            }
+        }
+
+        function updateSunPosition() {
+            const sun = document.getElementById('sun');
+            const moon = document.getElementById('moon');
+            const hourDecimal = state.hour + state.minute / 60;
+
+            // Sun arc from 6:00 to 18:00
+            if (hourDecimal >= 6 && hourDecimal <= 18) {
+                const progress = (hourDecimal - 6) / 12;
+                const x = progress * 80 + 10; // 10% to 90%
+                const y = 50 - Math.sin(progress * Math.PI) * 45; // Arc
+
+                sun.style.left = x + '%';
+                sun.style.top = y + '%';
+                sun.style.opacity = 1;
+            } else {
+                sun.style.opacity = 0;
+            }
+
+            // Moon arc from 18:00 to 6:00
+            let moonProgress;
+            if (hourDecimal >= 18) {
+                moonProgress = (hourDecimal - 18) / 12;
+            } else if (hourDecimal < 6) {
+                moonProgress = (hourDecimal + 6) / 12;
+            } else {
+                moon.style.opacity = 0;
+                return;
+            }
+
+            const moonX = moonProgress * 80 + 10;
+            const moonY = 50 - Math.sin(moonProgress * Math.PI) * 40;
+            moon.style.left = moonX + '%';
+            moon.style.top = moonY + '%';
+        }
+
+        function updateDemandChart() {
+            const bars = document.querySelectorAll('.demand-bar');
+            const currentHour = Math.floor(state.hour);
+
+            bars.forEach((bar, i) => {
+                bar.className = 'demand-bar' + (i === currentHour ? ' current' : '');
+            });
+        }
+
+        function updateReputation() {
+            // Based on how well demand is met
+            const coverage = state.dailyGenerated / Math.max(state.dailyConsumed, 1);
+            let stars = '';
+
+            if (coverage >= 1) stars = '⭐⭐⭐⭐⭐';
+            else if (coverage >= 0.8) stars = '⭐⭐⭐⭐';
+            else if (coverage >= 0.6) stars = '⭐⭐⭐';
+            else if (coverage >= 0.4) stars = '⭐⭐';
+            else stars = '⭐';
+
+            document.getElementById('reputation').textContent = stars;
+        }
+
+        // ==================== SHOP & PLACEMENT ====================
+        function selectItem(element) {
+            // Remove previous selection
+            document.querySelectorAll('.shop-item').forEach(item => {
+                item.classList.remove('selected');
+            });
+
+            // Select new item
+            element.classList.add('selected');
+            state.selectedType = element.dataset.type;
+            state.selectedItem = element.dataset.id;
+
+            // Update tip
+            const tips = TIPS[state.selectedType] || TIPS.general;
+            document.getElementById('shopTip').textContent = tips[Math.floor(Math.random() * tips.length)];
+        }
+
+        function placeItem(index) {
+            if (!state.selectedItem) {
+                showNotification('Selecciona un equipo de la tienda primero', 'warning');
+                return;
+            }
+
+            if (state.grid[index]) {
+                showNotification('Esta celda ya tiene equipo instalado', 'warning');
+                return;
+            }
+
+            // Get item cost
+            let cost, itemData;
+            if (state.selectedType === 'panel') {
+                itemData = state.panels[state.selectedItem];
+                cost = itemData.price;
+            } else {
+                itemData = state.batteries[state.selectedItem];
+                cost = itemData.price;
+            }
+
+            if (state.money < cost) {
+                showNotification('No tienes suficiente presupuesto', 'error');
+                return;
+            }
+
+            // Place item
+            state.money -= cost;
+            state.grid[index] = { type: state.selectedType, id: state.selectedItem };
+
+            // Update counts
+            if (state.selectedType === 'panel') {
+                state.panels[state.selectedItem].count++;
+            } else {
+                state.batteries[state.selectedItem].count++;
+                updateBatteryStats();
+            }
+
+            // Update grid visual
+            const cell = document.querySelector(`[data-index="${index}"]`);
+            cell.className = 'grid-cell has-' + state.selectedType;
+
+            showNotification(`${state.selectedType === 'panel' ? 'Panel' : 'Batería'} instalado correctamente`, 'success');
+
+            // Check achievements
+            checkAchievements();
+        }
+
+        function updateBatteryStats() {
+            let totalCapacity = 0;
+            let totalPower = 0;
+            let weightedEfficiency = 0;
+            let totalWeight = 0;
+
+            for (const [type, battery] of Object.entries(state.batteries)) {
+                if (battery.count > 0) {
+                    totalCapacity += battery.capacity * battery.count;
+                    totalPower += battery.power * battery.count;
+                    weightedEfficiency += battery.efficiency * battery.capacity * battery.count;
+                    totalWeight += battery.capacity * battery.count;
+                }
+            }
+
+            state.totalBatteryCapacity = totalCapacity;
+            state.totalBatteryPower = totalPower;
+            state.batteryEfficiency = totalWeight > 0 ? weightedEfficiency / totalWeight : 0.9;
+        }
+
+        // ==================== CONTROLS ====================
+        function setSpeed(speed) {
+            state.speed = speed;
+            state.paused = speed === 0;
+
+            document.querySelectorAll('.speed-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+        }
+
+        function startGame() {
+            document.getElementById('tutorial').style.display = 'none';
+            showNotification('¡Bienvenido! Construye tu planta solar seleccionando equipos y haciendo clic en la cuadrícula.', 'success');
+        }
+
+        // ==================== WEATHER ====================
+        function triggerWeatherEvent() {
+            const events = ['cloudy', 'sandstorm', 'clear'];
+            const newWeather = events[Math.floor(Math.random() * events.length)];
+
+            if (newWeather !== state.weather) {
+                state.weather = newWeather;
+
+                const sandstorm = document.getElementById('sandstorm');
+
+                if (newWeather === 'sandstorm') {
+                    sandstorm.classList.add('active');
+                    showNotification('⚠️ ¡Tormenta de arena! La generación solar se reduce drásticamente.', 'warning');
+                } else if (newWeather === 'cloudy') {
+                    sandstorm.classList.remove('active');
+                    showNotification('☁️ Cielo nublado. La generación solar disminuye un 60%.', 'warning');
+                } else {
+                    sandstorm.classList.remove('active');
+                    showNotification('☀️ Cielo despejado. Condiciones óptimas de generación.', 'success');
+                }
+            }
+        }
+
+        // ==================== ACHIEVEMENTS ====================
+        function checkAchievements() {
+            const achievements = [
+                {
+                    id: 'first_panel',
+                    name: 'Primer Rayo',
+                    desc: 'Instala tu primer panel solar',
+                    check: () => Object.values(state.panels).some(p => p.count > 0)
+                },
+                {
+                    id: 'first_battery',
+                    name: 'Guardián de Energía',
+                    desc: 'Instala tu primera batería',
+                    check: () => Object.values(state.batteries).some(b => b.count > 0)
+                },
+                {
+                    id: 'solar_farm',
+                    name: 'Granja Solar',
+                    desc: 'Instala 10 paneles solares',
+                    check: () => Object.values(state.panels).reduce((sum, p) => sum + p.count, 0) >= 10
+                },
+                {
+                    id: 'mega_storage',
+                    name: 'Mega Almacenamiento',
+                    desc: 'Alcanza 500 kWh de capacidad de batería',
+                    check: () => state.totalBatteryCapacity >= 500
+                },
+                {
+                    id: 'week_survivor',
+                    name: 'Superviviente',
+                    desc: 'Sobrevive una semana operando',
+                    check: () => state.day >= 7
+                }
+            ];
+
+            for (const achievement of achievements) {
+                if (!state.achievements.includes(achievement.id) && achievement.check()) {
+                    state.achievements.push(achievement.id);
+                    showAchievement(achievement);
+                }
+            }
+        }
+
+        function showAchievement(achievement) {
+            const popup = document.createElement('div');
+            popup.className = 'achievement-popup';
+            popup.innerHTML = `
+                <div class="achievement-icon">🏆</div>
+                <div class="achievement-text">
+                    <h4>${achievement.name}</h4>
+                    <p>${achievement.desc}</p>
+                </div>
+            `;
+
+            document.body.appendChild(popup);
+
+            setTimeout(() => {
+                popup.remove();
+            }, 4000);
+        }
+
+        // ==================== NOTIFICATIONS ====================
+        function showNotification(message, type = 'info') {
+            // Remove existing notification
+            const existing = document.querySelector('.notification');
+            if (existing) existing.remove();
+
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.textContent = message;
+
+            document.body.appendChild(notification);
+
+            setTimeout(() => {
+                notification.remove();
+            }, 4000);
+        }
+
+        // ==================== START ====================
+        init();
+    </script>
+</body>
+</html>
