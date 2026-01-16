@@ -3,56 +3,222 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Celeste: Los Llanos</title>
+    <title>Es Épico - Duelo de Versos</title>
     <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
 </head>
 <body>
-    <div id="gameContainer">
-        <canvas id="gameCanvas" width="800" height="600"></canvas>
-        <div id="ui">
-            <div id="levelInfo">Nivel 1</div>
-            <div id="stats">
-                <span id="dashes">Saltos: 2</span>
-                <span id="deaths">Muertes: 0</span>
+    <div id="game-container">
+        <!-- Pantalla de título -->
+        <div id="title-screen" class="screen active">
+            <div class="title-content">
+                <h1 class="game-title">ES ÉPICO</h1>
+                <h2 class="subtitle">Duelo de Versos</h2>
+                <div class="title-art">
+                    <pre class="ascii-art">
+    ╔═══════════════════════════════════╗
+    ║   🎤 CANCERBERO vs TIRONE 🎤    ║
+    ║         ⚔️  BATALLA  ⚔️          ║
+    ╚═══════════════════════════════════╝
+                    </pre>
+                </div>
+                <p class="intro-text">
+                    "El que no sepa replicar... pierde su honor en el lugar"
+                </p>
+                <div class="menu-buttons">
+                    <button onclick="game.startNewGame()">NUEVA PARTIDA</button>
+                    <button onclick="game.showInstructions()">INSTRUCCIONES</button>
+                    <button onclick="game.showCredits()">CRÉDITOS</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pantalla de instrucciones -->
+        <div id="instructions-screen" class="screen">
+            <div class="panel">
+                <h2>📜 CÓMO JUGAR</h2>
+                <div class="instructions-content">
+                    <p><strong>Estás en una batalla de rap épica.</strong></p>
+                    <p>Tu oponente lanzará un verso y deberás elegir la respuesta correcta para contrarrestarlo.</p>
+                    <br>
+                    <p>🎯 <strong>REGLAS:</strong></p>
+                    <ul>
+                        <li>Cada verso tiene UNA respuesta que lo derrota</li>
+                        <li>Aprende los versos de tus rivales</li>
+                        <li>Usa sus propias rimas en su contra</li>
+                        <li>Gana 3 intercambios para vencer al oponente</li>
+                    </ul>
+                    <br>
+                    <p>💡 <strong>CONSEJO:</strong> Como en Monkey Island, memoriza qué respuesta funciona contra cada verso.</p>
+                </div>
+                <button onclick="game.backToTitle()">VOLVER</button>
+            </div>
+        </div>
+
+        <!-- Pantalla de créditos -->
+        <div id="credits-screen" class="screen">
+            <div class="panel">
+                <h2>🎵 CRÉDITOS</h2>
+                <div class="credits-content">
+                    <p><strong>Inspirado en:</strong></p>
+                    <p>"Es Épico" - Cancerbero ft. Tirone José González</p>
+                    <br>
+                    <p><strong>Mecánica basada en:</strong></p>
+                    <p>Los duelos de insultos de "The Secret of Monkey Island"</p>
+                    <br>
+                    <p><strong>En memoria de:</strong></p>
+                    <p>Tirone José González Orama "Cancerbero"</p>
+                    <p>(1988 - 2015)</p>
+                    <br>
+                    <p class="quote">"Pensando en voz alta, se piensa mejor"</p>
+                </div>
+                <button onclick="game.backToTitle()">VOLVER</button>
+            </div>
+        </div>
+
+        <!-- Pantalla de selección de personaje -->
+        <div id="character-select" class="screen">
+            <div class="panel">
+                <h2>🎤 ELIGE TU GUERRERO</h2>
+                <div class="character-options">
+                    <div class="character-card" onclick="game.selectCharacter('cancerbero')">
+                        <div class="character-portrait">🎤</div>
+                        <h3>CANCERBERO</h3>
+                        <p>"El poeta de las calles"</p>
+                        <p class="stats">Lírica: ⭐⭐⭐⭐⭐</p>
+                    </div>
+                    <div class="character-card" onclick="game.selectCharacter('tirone')">
+                        <div class="character-portrait">🎧</div>
+                        <h3>TIRONE</h3>
+                        <p>"La voz del barrio"</p>
+                        <p class="stats">Flow: ⭐⭐⭐⭐⭐</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pantalla de batalla -->
+        <div id="battle-screen" class="screen">
+            <div class="battle-hud">
+                <div class="fighter-info player-info">
+                    <span class="fighter-name" id="player-name">JUGADOR</span>
+                    <div class="health-bar">
+                        <div class="health-fill player-health" id="player-health"></div>
+                    </div>
+                    <span class="wins" id="player-wins">0/3</span>
+                </div>
+                <div class="vs-badge">VS</div>
+                <div class="fighter-info enemy-info">
+                    <span class="fighter-name" id="enemy-name">OPONENTE</span>
+                    <div class="health-bar">
+                        <div class="health-fill enemy-health" id="enemy-health"></div>
+                    </div>
+                    <span class="wins" id="enemy-wins">0/3</span>
+                </div>
+            </div>
+
+            <div class="battle-arena">
+                <div class="character-display">
+                    <div class="character player-char" id="player-sprite">
+                        <div class="sprite">🎤</div>
+                        <div class="name-tag" id="player-tag">TÚ</div>
+                    </div>
+                    <div class="character enemy-char" id="enemy-sprite">
+                        <div class="sprite">🎧</div>
+                        <div class="name-tag" id="enemy-tag">RIVAL</div>
+                    </div>
+                </div>
+
+                <div class="dialogue-box" id="dialogue-box">
+                    <div class="speaker" id="speaker-name">???</div>
+                    <div class="dialogue-text" id="dialogue-text">
+                        Preparándose para la batalla...
+                    </div>
+                </div>
+
+                <div class="response-options" id="response-options">
+                    <!-- Las opciones se generan dinámicamente -->
+                </div>
+            </div>
+
+            <div class="round-indicator">
+                <span id="round-number">Ronda 1</span>
+            </div>
+        </div>
+
+        <!-- Pantalla de resultado de ronda -->
+        <div id="round-result" class="screen">
+            <div class="panel result-panel">
+                <h2 id="result-title">RESULTADO</h2>
+                <div class="result-content">
+                    <p id="result-verse"></p>
+                    <p id="result-response"></p>
+                    <p id="result-message"></p>
+                </div>
+                <button onclick="game.continueAfterResult()">CONTINUAR</button>
+            </div>
+        </div>
+
+        <!-- Pantalla de victoria -->
+        <div id="victory-screen" class="screen">
+            <div class="panel victory-panel">
+                <h2>🏆 ¡VICTORIA! 🏆</h2>
+                <div class="victory-content">
+                    <pre class="ascii-art victory-art">
+    ★ ★ ★ ★ ★ ★ ★ ★ ★
+    ★   CAMPEÓN DE   ★
+    ★   LOS VERSOS   ★
+    ★ ★ ★ ★ ★ ★ ★ ★ ★
+                    </pre>
+                    <p id="victory-message">¡Has demostrado tu dominio lírico!</p>
+                    <p id="victory-stats"></p>
+                </div>
+                <div class="menu-buttons">
+                    <button onclick="game.nextOpponent()">SIGUIENTE OPONENTE</button>
+                    <button onclick="game.backToTitle()">MENÚ PRINCIPAL</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pantalla de derrota -->
+        <div id="defeat-screen" class="screen">
+            <div class="panel defeat-panel">
+                <h2>💀 DERROTA 💀</h2>
+                <div class="defeat-content">
+                    <p>"El que no sepa replicar, pierde su honor en el lugar"</p>
+                    <p id="defeat-message">Tu oponente ha demostrado ser superior...</p>
+                </div>
+                <div class="menu-buttons">
+                    <button onclick="game.retryBattle()">REINTENTAR</button>
+                    <button onclick="game.backToTitle()">MENÚ PRINCIPAL</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pantalla de final del juego -->
+        <div id="game-complete" class="screen">
+            <div class="panel complete-panel">
+                <h2>🎵 ES ÉPICO 🎵</h2>
+                <div class="complete-content">
+                    <pre class="ascii-art">
+    ╔════════════════════════════════╗
+    ║  HAS COMPLETADO TODAS LAS     ║
+    ║  BATALLAS Y DEMOSTRADO SER    ║
+    ║  EL MAESTRO DE LOS VERSOS     ║
+    ╚════════════════════════════════╝
+                    </pre>
+                    <p class="final-quote">
+                        "Yo rapeo por hambre de justicia,<br>
+                        porque mi código de honor no bota la noticia"
+                    </p>
+                    <p class="tribute">- Cancerbero</p>
+                </div>
+                <button onclick="game.backToTitle()">VOLVER AL INICIO</button>
             </div>
         </div>
     </div>
 
-    <div id="menu" class="screen">
-        <div class="menu-content">
-            <h1>🐴 Celeste: Los Llanos 🌾</h1>
-            <p>Un viaje a través de la magia de los Llanos Venezolanos</p>
-            <button onclick="game.startGame()">JUGAR</button>
-            <div class="controls">
-                <p><strong>Controles:</strong></p>
-                <p>⬅️➡️: Mover | ESPACIO: Saltar | Z: Dash</p>
-                <p>⬆️: Escalar pared | R: Reiniciar</p>
-            </div>
-        </div>
-    </div>
-
-    <div id="levelComplete" class="screen">
-        <div class="menu-content">
-            <h1>🎉 ¡Nivel Completado!</h1>
-            <p id="levelStats"></p>
-            <button onclick="game.nextLevel()">Siguiente Nivel</button>
-            <button onclick="game.backToMenu()">Menú Principal</button>
-        </div>
-    </div>
-
-    <div id="gameOver" class="screen">
-        <div class="menu-content">
-            <h1>💀 Game Over</h1>
-            <p id="gameOverStats"></p>
-            <button onclick="game.startGame()">Intentar de Nuevo</button>
-            <button onclick="game.backToMenu()">Menú Principal</button>
-        </div>
-    </div>
-
-    <script src="js/utils.js"></script>
-    <script src="js/entities.js"></script>
-    <script src="js/player.js"></script>
-    <script src="js/level.js"></script>
+    <script src="js/verses.js"></script>
     <script src="js/game.js"></script>
 </body>
 </html>

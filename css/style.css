@@ -1,132 +1,609 @@
+/* ES ÉPICO - Duelo de Versos
+   Estilo visual inspirado en Monkey Island */
+
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
 }
 
+:root {
+    --bg-dark: #1a0a2e;
+    --bg-purple: #2d1b4e;
+    --accent-gold: #ffd700;
+    --accent-orange: #ff8c00;
+    --text-light: #f0e6d3;
+    --text-cream: #ffe4b5;
+    --highlight: #ff6b6b;
+    --success: #4ade80;
+    --panel-bg: #16213e;
+    --panel-border: #4a1942;
+    --dialogue-bg: #0f0f23;
+}
+
 body {
-    font-family: 'Arial', sans-serif;
-    background: linear-gradient(135deg, #d4a574 0%, #8b6f47 100%);
+    font-family: 'VT323', monospace;
+    background: linear-gradient(180deg, #1a0a2e 0%, #16213e 50%, #0f0f23 100%);
+    min-height: 100vh;
     display: flex;
     justify-content: center;
     align-items: center;
-    min-height: 100vh;
-    color: #333;
+    color: var(--text-light);
+    overflow: hidden;
 }
 
-#gameContainer {
-    position: relative;
-    width: 800px;
-    height: 600px;
-    background: #87ceeb;
-    border: 4px solid #654321;
-    box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
-}
-
-canvas {
-    display: block;
+#game-container {
     width: 100%;
-    height: 100%;
+    max-width: 900px;
+    height: 100vh;
+    max-height: 700px;
+    position: relative;
+    background: linear-gradient(180deg, #2d1b4e 0%, #1a0a2e 100%);
+    border: 4px solid var(--accent-gold);
+    box-shadow:
+        0 0 20px rgba(255, 215, 0, 0.3),
+        inset 0 0 50px rgba(0, 0, 0, 0.5);
+    overflow: hidden;
 }
 
-#ui {
-    position: absolute;
-    top: 10px;
-    left: 10px;
-    right: 10px;
-    display: flex;
-    justify-content: space-between;
-    color: white;
-    font-weight: bold;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
-    font-size: 18px;
-    z-index: 100;
-}
-
-#stats {
-    display: flex;
-    gap: 20px;
-    right: 10px;
-}
-
-#levelInfo {
-    font-size: 24px;
-}
-
+/* Pantallas */
 .screen {
-    position: fixed;
+    position: absolute;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.8);
-    display: flex;
+    display: none;
+    flex-direction: column;
     justify-content: center;
     align-items: center;
-    z-index: 200;
-    font-family: 'Arial', sans-serif;
+    padding: 20px;
+    animation: fadeIn 0.5s ease;
 }
 
-.screen.hidden {
-    display: none;
+.screen.active {
+    display: flex;
 }
 
-.menu-content {
-    text-align: center;
-    background: linear-gradient(135deg, #d4a574 0%, #8b6f47 100%);
-    padding: 40px;
-    border-radius: 20px;
-    max-width: 500px;
-    box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
 }
 
-.menu-content h1 {
-    font-size: 48px;
-    color: #fff;
+/* Título del juego */
+.game-title {
+    font-family: 'Press Start 2P', cursive;
+    font-size: 3rem;
+    color: var(--accent-gold);
+    text-shadow:
+        4px 4px 0 #8b4513,
+        -2px -2px 0 #ff8c00,
+        0 0 30px rgba(255, 215, 0, 0.5);
+    margin-bottom: 10px;
+    animation: titleGlow 2s ease-in-out infinite alternate;
+}
+
+@keyframes titleGlow {
+    from { text-shadow: 4px 4px 0 #8b4513, -2px -2px 0 #ff8c00, 0 0 30px rgba(255, 215, 0, 0.5); }
+    to { text-shadow: 4px 4px 0 #8b4513, -2px -2px 0 #ff8c00, 0 0 50px rgba(255, 215, 0, 0.8); }
+}
+
+.subtitle {
+    font-family: 'VT323', monospace;
+    font-size: 1.8rem;
+    color: var(--text-cream);
     margin-bottom: 20px;
-    text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.7);
+    letter-spacing: 4px;
 }
 
-.menu-content p {
-    font-size: 18px;
-    color: #fff;
-    margin-bottom: 30px;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+.title-content {
+    text-align: center;
 }
 
+.ascii-art {
+    font-family: monospace;
+    font-size: 0.9rem;
+    color: var(--accent-gold);
+    margin: 20px 0;
+    line-height: 1.4;
+    white-space: pre;
+}
+
+.intro-text {
+    font-size: 1.4rem;
+    color: var(--text-cream);
+    font-style: italic;
+    margin: 20px 0;
+    padding: 10px 20px;
+    border-left: 3px solid var(--accent-gold);
+}
+
+/* Botones */
 button {
-    background: #e74c3c;
-    color: white;
-    border: none;
-    padding: 15px 40px;
+    font-family: 'Press Start 2P', cursive;
+    font-size: 0.8rem;
+    padding: 15px 30px;
     margin: 10px;
-    font-size: 18px;
-    border-radius: 10px;
+    background: linear-gradient(180deg, #4a1942 0%, #2d1b4e 100%);
+    color: var(--accent-gold);
+    border: 3px solid var(--accent-gold);
     cursor: pointer;
-    font-weight: bold;
-    transition: all 0.3s;
+    transition: all 0.2s ease;
     text-transform: uppercase;
 }
 
 button:hover {
-    background: #c0392b;
+    background: linear-gradient(180deg, #6b2a5f 0%, #4a1942 100%);
     transform: scale(1.05);
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
 }
 
 button:active {
     transform: scale(0.95);
 }
 
-.controls {
-    margin-top: 30px;
-    text-align: left;
-    background: rgba(255, 255, 255, 0.1);
-    padding: 20px;
-    border-radius: 10px;
-    color: #fff;
+.menu-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    margin-top: 20px;
 }
 
-.controls p {
+/* Paneles */
+.panel {
+    background: linear-gradient(180deg, rgba(22, 33, 62, 0.95) 0%, rgba(15, 15, 35, 0.95) 100%);
+    border: 3px solid var(--accent-gold);
+    border-radius: 10px;
+    padding: 30px;
+    max-width: 600px;
+    text-align: center;
+    box-shadow:
+        0 0 30px rgba(255, 215, 0, 0.2),
+        inset 0 0 30px rgba(0, 0, 0, 0.5);
+}
+
+.panel h2 {
+    font-family: 'Press Start 2P', cursive;
+    font-size: 1.2rem;
+    color: var(--accent-gold);
+    margin-bottom: 20px;
+    text-shadow: 2px 2px 0 #8b4513;
+}
+
+.panel p, .panel li {
+    font-size: 1.3rem;
+    line-height: 1.6;
     margin: 10px 0;
-    font-size: 14px;
+}
+
+.panel ul {
+    text-align: left;
+    padding-left: 30px;
+}
+
+.quote {
+    font-style: italic;
+    color: var(--accent-orange);
+}
+
+/* Selección de personaje */
+.character-options {
+    display: flex;
+    gap: 30px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.character-card {
+    background: linear-gradient(180deg, #2d1b4e 0%, #1a0a2e 100%);
+    border: 3px solid var(--panel-border);
+    border-radius: 10px;
+    padding: 20px;
+    width: 200px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.character-card:hover {
+    border-color: var(--accent-gold);
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(255, 215, 0, 0.3);
+}
+
+.character-portrait {
+    font-size: 4rem;
+    margin-bottom: 10px;
+}
+
+.character-card h3 {
+    font-family: 'Press Start 2P', cursive;
+    font-size: 0.8rem;
+    color: var(--accent-gold);
+    margin-bottom: 10px;
+}
+
+.character-card p {
+    font-size: 1rem;
+    color: var(--text-cream);
+}
+
+.stats {
+    color: var(--accent-orange) !important;
+    margin-top: 10px !important;
+}
+
+/* Pantalla de batalla */
+#battle-screen {
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.battle-hud {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    background: linear-gradient(180deg, #0f0f23 0%, #16213e 100%);
+    border-bottom: 3px solid var(--accent-gold);
+}
+
+.fighter-info {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+}
+
+.fighter-name {
+    font-family: 'Press Start 2P', cursive;
+    font-size: 0.7rem;
+    color: var(--accent-gold);
+}
+
+.health-bar {
+    width: 150px;
+    height: 15px;
+    background: #1a0a2e;
+    border: 2px solid var(--accent-gold);
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.health-fill {
+    height: 100%;
+    width: 100%;
+    transition: width 0.5s ease;
+}
+
+.player-health {
+    background: linear-gradient(90deg, #4ade80 0%, #22c55e 100%);
+}
+
+.enemy-health {
+    background: linear-gradient(90deg, #f87171 0%, #ef4444 100%);
+}
+
+.wins {
+    font-size: 1.2rem;
+    color: var(--text-cream);
+}
+
+.vs-badge {
+    font-family: 'Press Start 2P', cursive;
+    font-size: 1rem;
+    color: var(--highlight);
+    text-shadow: 0 0 10px var(--highlight);
+    animation: vsPulse 1s ease-in-out infinite;
+}
+
+@keyframes vsPulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+}
+
+/* Arena de batalla */
+.battle-arena {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+    background:
+        radial-gradient(ellipse at center bottom, rgba(255, 215, 0, 0.1) 0%, transparent 50%),
+        linear-gradient(180deg, #1a0a2e 0%, #0f0f23 100%);
+}
+
+.character-display {
+    display: flex;
+    justify-content: space-around;
+    align-items: flex-end;
+    padding: 20px;
+    min-height: 150px;
+}
+
+.character {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    transition: all 0.3s ease;
+}
+
+.character .sprite {
+    font-size: 4rem;
+    animation: characterBob 2s ease-in-out infinite;
+}
+
+.player-char .sprite {
+    animation-delay: 0s;
+}
+
+.enemy-char .sprite {
+    animation-delay: 1s;
+}
+
+@keyframes characterBob {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+}
+
+.character.speaking .sprite {
+    animation: speaking 0.2s ease-in-out infinite;
+}
+
+@keyframes speaking {
+    0%, 100% { transform: scale(1) translateY(0); }
+    50% { transform: scale(1.1) translateY(-5px); }
+}
+
+.character.hit .sprite {
+    animation: hit 0.5s ease;
+}
+
+@keyframes hit {
+    0%, 100% { transform: translateX(0); filter: none; }
+    25% { transform: translateX(-20px); filter: brightness(2); }
+    75% { transform: translateX(20px); filter: brightness(0.5); }
+}
+
+.name-tag {
+    font-family: 'Press Start 2P', cursive;
+    font-size: 0.6rem;
+    color: var(--text-cream);
+    background: rgba(0, 0, 0, 0.7);
+    padding: 5px 10px;
+    border-radius: 3px;
+    margin-top: 10px;
+}
+
+/* Caja de diálogo estilo Monkey Island */
+.dialogue-box {
+    background: var(--dialogue-bg);
+    border: 3px solid var(--accent-gold);
+    border-radius: 5px;
+    padding: 15px 20px;
+    margin: 15px 0;
+    min-height: 80px;
+    position: relative;
+}
+
+.speaker {
+    position: absolute;
+    top: -12px;
+    left: 20px;
+    background: var(--accent-gold);
+    color: var(--bg-dark);
+    padding: 3px 10px;
+    font-family: 'Press Start 2P', cursive;
+    font-size: 0.6rem;
+    border-radius: 3px;
+}
+
+.dialogue-text {
+    font-size: 1.4rem;
+    line-height: 1.5;
+    color: var(--text-light);
+    padding-top: 5px;
+}
+
+/* Opciones de respuesta estilo Monkey Island */
+.response-options {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.response-option {
+    background: transparent;
+    border: none;
+    color: var(--accent-orange);
+    font-family: 'VT323', monospace;
+    font-size: 1.3rem;
+    text-align: left;
+    padding: 8px 15px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border-left: 3px solid transparent;
+}
+
+.response-option:hover {
+    color: var(--accent-gold);
+    background: rgba(255, 215, 0, 0.1);
+    border-left-color: var(--accent-gold);
+    transform: translateX(10px);
+}
+
+.response-option::before {
+    content: '► ';
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.response-option:hover::before {
+    opacity: 1;
+}
+
+/* Indicador de ronda */
+.round-indicator {
+    text-align: center;
+    padding: 10px;
+    background: rgba(0, 0, 0, 0.5);
+    border-top: 2px solid var(--panel-border);
+}
+
+.round-indicator span {
+    font-family: 'Press Start 2P', cursive;
+    font-size: 0.7rem;
+    color: var(--text-cream);
+}
+
+/* Pantalla de resultado */
+.result-panel {
+    max-width: 500px;
+}
+
+#result-verse {
+    color: var(--highlight);
+    font-style: italic;
+    padding: 10px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 5px;
+    margin: 10px 0;
+}
+
+#result-response {
+    color: var(--success);
+    padding: 10px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 5px;
+    margin: 10px 0;
+}
+
+#result-message {
+    font-size: 1.5rem;
+    margin-top: 15px;
+    color: var(--accent-gold);
+}
+
+/* Victoria */
+.victory-panel {
+    animation: victoryGlow 1s ease-in-out infinite alternate;
+}
+
+@keyframes victoryGlow {
+    from { box-shadow: 0 0 30px rgba(74, 222, 128, 0.3); }
+    to { box-shadow: 0 0 50px rgba(74, 222, 128, 0.6); }
+}
+
+.victory-art {
+    color: var(--success);
+}
+
+/* Derrota */
+.defeat-panel {
+    border-color: var(--highlight);
+}
+
+.defeat-panel h2 {
+    color: var(--highlight);
+}
+
+/* Final del juego */
+.complete-panel {
+    animation: epicGlow 2s ease-in-out infinite;
+}
+
+@keyframes epicGlow {
+    0%, 100% { box-shadow: 0 0 30px rgba(255, 215, 0, 0.3); }
+    50% { box-shadow: 0 0 60px rgba(255, 215, 0, 0.6), 0 0 100px rgba(255, 140, 0, 0.3); }
+}
+
+.final-quote {
+    font-size: 1.4rem;
+    color: var(--text-cream);
+    line-height: 1.8;
+    margin: 20px 0;
+}
+
+.tribute {
+    color: var(--accent-gold);
+    font-style: italic;
+}
+
+/* Animaciones adicionales */
+@keyframes slideIn {
+    from { transform: translateY(50px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+.response-options.visible {
+    animation: slideIn 0.3s ease;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .game-title {
+        font-size: 1.8rem;
+    }
+
+    .subtitle {
+        font-size: 1.2rem;
+    }
+
+    button {
+        font-size: 0.6rem;
+        padding: 12px 20px;
+    }
+
+    .character-options {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .health-bar {
+        width: 100px;
+    }
+
+    .dialogue-text {
+        font-size: 1.1rem;
+    }
+
+    .response-option {
+        font-size: 1.1rem;
+    }
+
+    .ascii-art {
+        font-size: 0.6rem;
+    }
+}
+
+/* Efectos de texto typewriter */
+.typewriter {
+    overflow: hidden;
+    white-space: nowrap;
+    animation: typing 2s steps(40, end);
+}
+
+@keyframes typing {
+    from { width: 0; }
+    to { width: 100%; }
+}
+
+/* Scanlines effect (opcional, estilo retro) */
+#game-container::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: repeating-linear-gradient(
+        0deg,
+        rgba(0, 0, 0, 0.1),
+        rgba(0, 0, 0, 0.1) 1px,
+        transparent 1px,
+        transparent 2px
+    );
+    pointer-events: none;
+    opacity: 0.3;
 }
